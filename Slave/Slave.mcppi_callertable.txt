@@ -1,0 +1,35 @@
+main
+	__CC2DW
+		____DoICP
+	init
+		UART1_Init
+	init_variables
+	Lcd_Init
+		Delay_5500us
+		Delay_1us
+	Lcd_Cmd
+		Delay_1us
+		Delay_5500us
+		Delay_50us
+	UpdateLCD
+		Lcd_Out
+			Lcd_Cmd
+				Delay_1us
+				Delay_5500us
+				Delay_50us
+			Lcd_Chr_CP
+				Lcd_Cmd
+					Delay_1us
+					Delay_5500us
+					Delay_50us
+		Lcd_Chr
+			Lcd_Cmd
+				Delay_1us
+				Delay_5500us
+				Delay_50us
+	transmit
+interrupt
+	IncrementTime
+	DecodeTime
+	ProcessInputs
+	ConvertTime
