@@ -4,14 +4,40 @@
 #define DR PORTA.F5
 #include "../commons/config.h"
 
+typedef struct {
+  unsigned canCloseTCP : 1; // socket close flagg
+  unsigned isBroadcast : 1;
+} TEthPktFlags;
+
+const unsigned char httpHeader[] = "HTTP/1.1 200 OK\nContent-type: ";
+const unsigned char httpMimeTypeHTML[] = "text/html\n\n";
+const unsigned char httpMimeTypeScript[] = "text/plain\n\n";
+const unsigned char httpMethod[] = "GET /";
+
+sfr sbit SPI_Ethernet_Rst at RA1_bit; // reset PIN
+sfr sbit SPI_Ethernet_CS at RA0_bit;  // chip select PIN
+sfr sbit SPI_Ethernet_Rst_Direction at TRISA1_bit;
+sfr sbit SPI_Ethernet_CS_Direction at TRISA0_bit;
+
+/*IP i MAC adrese */
+// NIC
+const unsigned char myMacAddr[6] = MAC_ADDR;
+const unsigned char myIpAddr[4] = IP_ADDR;
+unsigned char getRequest[15];
+unsigned char dyna[31];
+unsigned long httpCounter = 0;
+
 unsigned char i, brojac, SLAVE_ID, OBB, ch, Flag1, Flag2, Flag3;
 unsigned char seconds, minutes, hours;
+unsigned char buffer[150];
+unsigned char no_ch;
 // nizovi za svaki slejv
 unsigned char Cmd[16];
 unsigned char Mode[16]; // 16 modova za zalivanje
 unsigned char Hour[16]; /*Podaci o vremenu  */
 unsigned char Min[16];
 unsigned char Sec[16];
+unsigned char Status[16];
 unsigned char SWAMByte;
 // Lcd pinout settings //LCD je vezan za PORTB
 sbit LCD_RS at RC0_bit;
@@ -98,6 +124,61 @@ void init() {
   UpdateLCD();
 }
 
+// Ethernet funkcije
+unsigned int putConstString(const char *s) {
+  unsigned int cnt = 0;
+  while (*s) {
+    SPI_Ethernet_putByte(*s++);
+    cnt++;
+  }
+  return (cnt);
+}
+unsigned int putString(char *s) {
+  unsigned int cnt = 0;
+  while (*s) {
+    SPI_Ethetnet_putByte(*s++);
+    cnt++;
+  }
+  return (cnt);
+}
+void appendBuffer(char *p_ch) {
+  while ((*p_ch) != 0x00) {
+    buffer[no_ch] = *p_ch;
+    no_ch++;
+    p_ch++;
+  }
+}
+void formBuffer() {
+  unsigned char i = 0;
+  unsigned char StatusByte = 0x00;
+  no_ch = 0; // start of buffer
+
+  for (i = 0; i < 16; i++) {
+    if (Comm[i] == 1) { // samo slejvovi koji su se odazvali
+      appendBuffer("Basta: ");
+      ByteToStr(i, txt);
+      appendBuffer(txt); // append broj baste
+      appendBuffer(" ");
+      StatusByte = Status[i];
+      if (!(StatusByte & STATUS_SYSTEM_BIT)) {
+        appendBuffer("OFF\n\n");
+      } else if (StatusByte & STATUS_WATER_BIT) {
+        if (StatusByte & STATUS_MANUAL_BIT) {
+          appendBuffer("Watering(Manual_Mode)\n\n");
+        } else {
+          appendBuffer("Watering(Automatic_Mode)\n\n");
+        }
+      } else if (StatusByte & STATUS_ALARM_BIT) {
+        appendBuffer("ALARM ON\n\n");
+      } else {
+        appendBuffer("IDLE\n\n");
+      }
+    }
+  }
+  buffer[no_ch] = 0x00;
+  no_ch++;
+}
+
 void transmit(unsigned char DATA8b) {
   TXREG = DATA8b;
   while (!TXSTA.TRMT)
@@ -125,10 +206,11 @@ void interrupt() {
     case 0:
       if ((ch & 0xE0) == STATUS_CODE) {
         OBB = 0x01;
+        Comm[SLAVE_ID] = 0;
       }
       break;
     case 1:
-      SWAMByte = ch;
+      Status[SLAVE_ID] = ch;
       OBB = 0x00;
       break;
     default:
