@@ -581,7 +581,7 @@ void interrupt()
          {
             BytesToReceive = 0x00;
             ControlByte = ch;
-            if ((ControlByte & 0x01) == 0x01)
+            if (ControlByte == 0xFF)
             {
                if ((SystemOn == 1) && (WateringActive == 0))
                {
