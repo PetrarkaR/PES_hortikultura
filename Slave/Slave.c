@@ -10,6 +10,7 @@
 #define PinStatusLED   PORTA.F4   // LED - sistem ukljucen
 
 #define DR             PORTC.F5   // RS485 smer (1=transmit, 0=receive)
+#include "../commons/config.h"
 
 // Lcd pinout settings
 sbit LCD_RS at RC0_bit;
@@ -63,12 +64,14 @@ unsigned char ProgStartHour = 6;
 unsigned char ProgStartMin = 0;
 unsigned char ProgDurationH = 0;
 unsigned char ProgDurationL = 60;
+unsigned char ProgramMode = 0x00;
 
 // privremene za prijem programa
 unsigned char Tmp_ProgStartHour = 0x00;
 unsigned char Tmp_ProgStartMin = 0x00;
 unsigned char Tmp_ProgDurationH = 0x00;
 unsigned char Tmp_ProgDurationL = 0x00;
+unsigned char Tmp_ProgramMode = 0x00;
 
 // preostalo vreme zalivanja
 unsigned char RemainingH = 0x00;
@@ -83,9 +86,6 @@ unsigned char FlowMax = 230;
 unsigned char Tmp_FlowMin = 0x00;
 unsigned char Tmp_FlowMax = 0x00;
 
-// pomocna za LCD prikaz (16-bit sekunde)
-unsigned int TmpDisplay = 0;
-
 // komunikacija
 unsigned char ch = 0x00;
 unsigned char Command = 0x00;
@@ -93,6 +93,7 @@ unsigned char BytesToReceive = 0x00;
 unsigned char Counter2 = 0x00;
 unsigned char BAJT1 = 0x00;
 unsigned char BAJT2 = 0x00;
+unsigned char ControlByte = 0x00;
 
 // flagovi
 bit CallFlag = 0;
@@ -120,6 +121,10 @@ unsigned char ReadADC();
 void ProcessInputs();
 void UpdateLCD();
 void Message_StoM();
+void SendStatus();
+unsigned char HexDigit(unsigned char val);
+void LcdByteHex(unsigned char row, unsigned char col, unsigned char val);
+void LcdByteDec2(unsigned char row, unsigned char col, unsigned char val);
 
 
 void transmit(unsigned char DATA8b)
@@ -287,10 +292,7 @@ void main()
          Min_X10 = Tmp_Min_X10;
          Hour_X1 = Tmp_Hour_X1;
          Hour_X10 = Tmp_Hour_X10;
-         DR = 1;
-         BAJT1 = 0xC0 | 0x20 | SLAVE_ID;
-         transmit(BAJT1);
-         DR = 0;
+         SendStatus();
       }
 
       // podesavanje granica protoka
@@ -299,35 +301,26 @@ void main()
          FlowSetupFlag = 0;
          FlowMin = Tmp_FlowMin;
          FlowMax = Tmp_FlowMax;
-         DR = 1;
-         BAJT1 = 0x80 | SLAVE_ID;
-         transmit(BAJT1);
-         DR = 0;
+         SendStatus();
       }
 
       // podesavanje programa
       if (ProgSetupFlag == 1)
       {
          ProgSetupFlag = 0;
+         ProgramMode = Tmp_ProgramMode;
          ProgStartHour = Tmp_ProgStartHour;
          ProgStartMin = Tmp_ProgStartMin;
          ProgDurationH = Tmp_ProgDurationH;
          ProgDurationL = Tmp_ProgDurationL;
-         DR = 1;
-         BAJT1 = 0xC0 | 0x10 | SLAVE_ID;
-         transmit(BAJT1);
-         DR = 0;
+         SendStatus();
       }
 
       // odgovor na prozivku
       if (CallFlag == 1)
       {
          CallFlag = 0;
-         Message_StoM();
-         DR = 1;
-         transmit(BAJT1);
-         transmit(BAJT2);
-         DR = 0;
+         SendStatus();
       }
    }
 }
@@ -387,6 +380,35 @@ void ConvertTime(unsigned char ch)
    }
 }
 
+unsigned char HexDigit(unsigned char val)
+{
+   val = val & 0x0F;
+   if (val < 10)
+      return val + '0';
+   return val + 'A' - 10;
+}
+
+void LcdByteHex(unsigned char row, unsigned char col, unsigned char val)
+{
+   Lcd_Chr(row, col, HexDigit(val >> 4));
+   Lcd_Chr(row, col + 1, HexDigit(val));
+}
+
+void LcdByteDec2(unsigned char row, unsigned char col, unsigned char val)
+{
+   unsigned char ones = val;
+   unsigned char tens = 0x00;
+
+   while (ones > 9)
+   {
+      ones = ones - 10;
+      tens++;
+   }
+
+   Lcd_Chr(row, col, tens + '0');
+   Lcd_Chr(row, col + 1, ones + '0');
+}
+
 void interrupt()
 {
    // prekid tajmera (svake 100ms)
@@ -418,13 +440,12 @@ void interrupt()
 
    // serijski prijem (UART)
    //
-   // Protokol Master -> Slave:
-   //   001 (0x20) = prozivka, bit4=SystemOn
-   //   011 (0x60) = podesavanje sata, +3 bajta
-   //   100 (0x80) = podesavanje protoka, +2 bajta
-   //   101 (0xA0) = podesavanje programa, +4 bajta
-   //   110 (0xC0) = daljinsko pokretanje
-   //   111 (0xE0) = daljinsko zaustavljanje
+   // Protokol Master -> Slave je isti kao u commons/config.h:
+   //   STATUS_CODE  (0x20), bit4=SystemOn: prozivka
+   //   RTC_CODE     (0x60) + RTC_BYTES bajtova
+   //   GARDEN_CODE  (0x80) + GARDEN_BYTES bajtova
+   //   MODE_CODE    (0xA0) + MODE_BYTES bajtova
+   //   CONTROL_CODE (0xC0) + CONTROL_BYTES bajtova
    //
    if ((PIE1.RCIE) && (PIR1.RCIF))
    {
@@ -433,60 +454,51 @@ void interrupt()
 
       if (BytesToReceive == 0x00)
       {
-         if ((ch & 0x0F) == SLAVE_ID)
+         if ((ch & CMD_ID_MASK) == SLAVE_ID)
          {
             Command = ch;
 
-            if ((ch & 0xE0) == 0x20)
+            if ((ch & CMD_TYPE_MASK) == STATUS_CODE)
             {
-               if ((ch & 0x10) == 0x10)
+               if ((ch & CMD_INOUT_MASK) == CMD_INOUT_MASK)
                   SystemOn = 1;
                else
                {
                   SystemOn = 0;
                   WateringActive = 0;
                   PinPump = 0;
+                  AlarmActive = 0;
+                  PinAlarm = 0;
                }
                BytesToReceive = 0x00;
                CallFlag = 1;
             }
-            else if ((ch & 0xE0) == 0x60)
+            else if ((ch & CMD_TYPE_MASK) == RTC_CODE)
             {
-               BytesToReceive = 0x03;
+               BytesToReceive = RTC_BYTES;
                Counter2 = 3;
             }
-            else if ((ch & 0xE0) == 0x80)
+            else if ((ch & CMD_TYPE_MASK) == GARDEN_CODE)
             {
-               BytesToReceive = 0x02;
+               BytesToReceive = GARDEN_BYTES;
                Counter2 = 3;
             }
-            else if ((ch & 0xE0) == 0xA0)
+            else if ((ch & CMD_TYPE_MASK) == MODE_CODE)
             {
-               BytesToReceive = 0x04;
+               BytesToReceive = MODE_BYTES;
                Counter2 = 5;
             }
-            else if ((ch & 0xE0) == 0xC0)
+            else if ((ch & CMD_TYPE_MASK) == CONTROL_CODE)
             {
-               if ((SystemOn == 1) && (WateringActive == 0))
-               {
-                  WateringActive = 1;
-                  ManualMode = 0;
-                  RemainingH = ProgDurationH;
-                  RemainingL = ProgDurationL;
-                  PinPump = 1;
-               }
-            }
-            else if ((ch & 0xE0) == 0xE0)
-            {
-               WateringActive = 0;
-               ManualMode = 0;
-               RemainingH = 0;
-               RemainingL = 0;
-               PinPump = 0;
-               AlarmActive = 0;
-               PinAlarm = 0;
+               BytesToReceive = CONTROL_BYTES;
+               Counter2 = 3;
             }
          }
+      }
+      else if (BytesToReceive == 0x05)
+      {
+         BytesToReceive = 0x04;
+         Tmp_ProgramMode = ch;
       }
       else if (BytesToReceive == 0x04)
       {
@@ -498,7 +510,7 @@ void interrupt()
       }
       else if (BytesToReceive == 0x03)
       {
-         if ((Command & 0xE0) == 0x60)
+         if ((Command & CMD_TYPE_MASK) == RTC_CODE)
          {
             BytesToReceive = 0x02;
             ch = ch - 0x30;
@@ -508,7 +520,7 @@ void interrupt()
             Tmp_Sec_X1 = X1;
             Tmp_Sec_X10 = X10;
          }
-         else if ((Command & 0xE0) == 0xA0)
+         else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
          {
             BytesToReceive = 0x02;
             ch = ch - 0x30;
@@ -519,7 +531,7 @@ void interrupt()
       }
       else if (BytesToReceive == 0x02)
       {
-         if ((Command & 0xE0) == 0x60)
+         if ((Command & CMD_TYPE_MASK) == RTC_CODE)
          {
             BytesToReceive = 0x01;
             ch = ch - 0x30;
@@ -529,12 +541,12 @@ void interrupt()
             Tmp_Min_X1 = X1;
             Tmp_Min_X10 = X10;
          }
-         else if ((Command & 0xE0) == 0x80)
+         else if ((Command & CMD_TYPE_MASK) == GARDEN_CODE)
          {
             BytesToReceive = 0x01;
             Tmp_FlowMin = ch;
          }
-         else if ((Command & 0xE0) == 0xA0)
+         else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
          {
             BytesToReceive = 0x01;
             Tmp_ProgDurationH = ch;
@@ -542,7 +554,7 @@ void interrupt()
       }
       else if (BytesToReceive == 0x01)
       {
-         if ((Command & 0xE0) == 0x60)
+         if ((Command & CMD_TYPE_MASK) == RTC_CODE)
          {
             BytesToReceive = 0x00;
             ch = ch - 0x30;
@@ -553,17 +565,44 @@ void interrupt()
             Tmp_Hour_X10 = X10;
             RTCSetupFlag = 1;
          }
-         else if ((Command & 0xE0) == 0x80)
+         else if ((Command & CMD_TYPE_MASK) == GARDEN_CODE)
          {
             BytesToReceive = 0x00;
             Tmp_FlowMax = ch;
             FlowSetupFlag = 1;
          }
-         else if ((Command & 0xE0) == 0xA0)
+         else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
          {
             BytesToReceive = 0x00;
             Tmp_ProgDurationL = ch;
             ProgSetupFlag = 1;
+         }
+         else if ((Command & CMD_TYPE_MASK) == CONTROL_CODE)
+         {
+            BytesToReceive = 0x00;
+            ControlByte = ch;
+            if ((ControlByte & 0x01) == 0x01)
+            {
+               if ((SystemOn == 1) && (WateringActive == 0))
+               {
+                  WateringActive = 1;
+                  ManualMode = 0;
+                  RemainingH = ProgDurationH;
+                  RemainingL = ProgDurationL;
+                  PinPump = 1;
+               }
+            }
+            else
+            {
+               WateringActive = 0;
+               ManualMode = 0;
+               RemainingH = 0;
+               RemainingL = 0;
+               PinPump = 0;
+               AlarmActive = 0;
+               PinAlarm = 0;
+            }
+            CallFlag = 1;
          }
       }
    }
@@ -572,6 +611,9 @@ void interrupt()
 
 void UpdateLCD()
 {
+   unsigned char DispH = 0x00;
+   unsigned char DispL = 0x00;
+
    // --- red 1: tekuce vreme ---
    Lcd_Chr(1, 1, Hour_X10 + '0');
    Lcd_Chr(1, 2, Hour_X1 + '0');
@@ -585,11 +627,9 @@ void UpdateLCD()
    // --- red 1: vreme pocetka programa ---
    Lcd_Chr(1, 9, ' ');
    Lcd_Chr(1, 10, ' ');
-   Lcd_Chr(1, 11, (ProgStartHour / 10) + '0');
-   Lcd_Chr(1, 12, (ProgStartHour % 10) + '0');
+   LcdByteDec2(1, 11, ProgStartHour);
    Lcd_Chr(1, 13, ':');
-   Lcd_Chr(1, 14, (ProgStartMin / 10) + '0');
-   Lcd_Chr(1, 15, (ProgStartMin % 10) + '0');
+   LcdByteDec2(1, 14, ProgStartMin);
 
    // --- red 1 pozicija 16: P ako pumpa radi ---
    if (WateringActive == 1)
@@ -597,27 +637,27 @@ void UpdateLCD()
    else
       Lcd_Chr(1, 16, ' ');
 
-   // --- red 2: preostalo/trajanje u sekundama (4 cifre) ---
+   // --- red 2: trajanje/protok bez deljenja ---
    if (WateringActive == 1)
-      TmpDisplay = ((unsigned int)RemainingH << 8) | RemainingL;
+   {
+      DispH = RemainingH;
+      DispL = RemainingL;
+   }
    else
-      TmpDisplay = ((unsigned int)ProgDurationH << 8) | ProgDurationL;
+   {
+      DispH = ProgDurationH;
+      DispL = ProgDurationL;
+   }
 
-   Lcd_Chr(2, 1, (TmpDisplay / 1000) + '0');
-   Lcd_Chr(2, 2, ((TmpDisplay / 100) % 10) + '0');
-   Lcd_Chr(2, 3, ((TmpDisplay / 10) % 10) + '0');
-   Lcd_Chr(2, 4, (TmpDisplay % 10) + '0');
-
-   // --- red 2: protok ---
-   Lcd_Chr(2, 5, ' ');
-   Lcd_Chr(2, 6, 'F');
-   Lcd_Chr(2, 7, ':');
-   Lcd_Chr(2, 8, (FlowValue / 100) + '0');
-   Lcd_Chr(2, 9, ((FlowValue / 10) % 10) + '0');
-   Lcd_Chr(2, 10, (FlowValue % 10) + '0');
-
-   // --- red 2: razmak i alarm ---
-   Lcd_Out(2, 11, "     ");
+   Lcd_Chr(2, 1, 'D');
+   Lcd_Chr(2, 2, ':');
+   LcdByteHex(2, 3, DispH);
+   LcdByteHex(2, 5, DispL);
+   Lcd_Chr(2, 7, ' ');
+   Lcd_Chr(2, 8, 'F');
+   Lcd_Chr(2, 9, ':');
+   LcdByteHex(2, 10, FlowValue);
+   Lcd_Out(2, 12, "    ");
    if (AlarmActive == 1)
       Lcd_Chr(2, 16, 'A');
    else
@@ -625,19 +665,26 @@ void UpdateLCD()
 }
 void Message_StoM()
 {
-   BAJT1 = 0xC0 | SLAVE_ID;
-   if (SystemOn == 1)
-      BAJT1 = BAJT1 | 0x20;
-   if (WateringActive == 1)
-      BAJT1 = BAJT1 | 0x10;
-
+   BAJT1 = STATUS_CODE | SLAVE_ID;
    BAJT2 = 0x00;
+
+   if (SystemOn == 1)
+      BAJT2 = BAJT2 | STATUS_SYSTEM_BIT;
+   if (WateringActive == 1)
+      BAJT2 = BAJT2 | STATUS_WATER_BIT;
    if (AlarmActive == 1)
-      BAJT2 = BAJT2 | 0x80;
+      BAJT2 = BAJT2 | STATUS_ALARM_BIT;
    if (ManualMode == 1)
-      BAJT2 = BAJT2 | 0x40;
-   if (FlowOK == 1)
-      BAJT2 = BAJT2 | 0x20;
+      BAJT2 = BAJT2 | STATUS_MANUAL_BIT;
+}
+
+void SendStatus()
+{
+   Message_StoM();
+   DR = 1;
+   transmit(BAJT1);
+   transmit(BAJT2);
+   DR = 0;
 }
 void init()
 {
@@ -670,7 +717,7 @@ void init()
    PIR1.TMR1IF = 0;
    PIE1.TMR1IE = 1;
 
-   Uart1_Init(19200);
+   Uart1_Init(UART_BAUD_RATE);
    TXSTA.TXEN = 1;
    RCSTA.SPEN = 1;
    RCSTA.CREN = 1;
