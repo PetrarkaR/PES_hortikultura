@@ -8,10 +8,11 @@
 // Protokol Master -> Slave:==============================
 /*
  * ========================================================
- *RTC promenljive 011|x|idid| -> 0x60
- *Biranje moda 101|x|idid -> 0xA0 + 5 Bytes /pXX|HH|MM|SS|SS
- *Biranje baste 100|x|idid -> 0x80 + 2 bytes /bXX|YY
- *Control 110|X|idid -> 0xC0 +1 byte kontrolni
+ *RTC promenljive 011|x|idid| -> 0x60 + 3 Bytes HH|MM||SS
+ *Biranje moda 101|x|idid| -> 0xA0 + 5 Bytes /pXX|HH|MM|SS|SS
+ *Biranje baste 100|x|idid| -> 0x80 + 2 Bytes /bXX|YY
+ *Control 110|X|idid| -> 0xC0 +1 byte kontrolni za remote on/off |1111 1111|
+ * /cXX|FF (ON)
  * ========================================================
  */
 #define RTC_CODE 0x60
@@ -40,4 +41,8 @@
 #define MAC_ADDR {0x00, 0x14, 0xA5, 0x76, 0x19, 0x3f}
 #define IP_ADDR {10, 99, 12, 1}
 #define HTTP_PORT 80
+// OBB MasterRecieve
+#define OBB_IDLE 0x00
+#define OBB_CMD_BYTE 0x02
+#define OBB_STATUS_BYTE 0x01
 #endif

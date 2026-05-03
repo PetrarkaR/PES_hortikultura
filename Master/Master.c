@@ -23,7 +23,7 @@ sfr sbit SPI_Ethernet_CS_Direction at TRISA0_bit;
 // NIC
 const unsigned char myMacAddr[6] = MAC_ADDR;
 const unsigned char myIpAddr[4] = IP_ADDR;
-unsigned char getRequest[15];
+unsigned char getRequest[20];
 unsigned char dyna[31];
 unsigned long httpCounter = 0;
 
@@ -32,13 +32,30 @@ unsigned char seconds, minutes, hours;
 unsigned char buffer[150];
 unsigned char no_ch;
 // nizovi za svaki slejv
-unsigned char Cmd[16];
+// unsigned char Cmd[16];
+unsigned char Comm[16]; // Slave Alive Byte
 unsigned char Mode[16]; // 16 modova za zalivanje
 unsigned char Hour[16]; /*Podaci o vremenu  */
 unsigned char Min[16];
 unsigned char Sec[16];
-unsigned char Status[16];
-unsigned char SWAMByte;
+unsigned char Status[16]; // SWAM
+// Modovi za slejv
+// PROGRAM /p |XX|HH|MM|SS|SS|
+bit flagMode = 0;
+unsigned char TargetMode = 0x00;
+unsigned char Mode = 0x00;
+unsigned char ModeStartHour = 0x00;
+unsigned char ModeStartMin = 0x00;
+unsigned char ModeStartSecH = 0x00;
+unsigned char ModeStartSecL = 0x00;
+// Garden
+unsigned char TargetGarden = 0x00;
+unsigned char TargetGardenMode = 0x00;
+bit flagGarden = 0;
+// Control
+unsigned char ControlByte = 0x00;
+bit flagControl = 0;
+0x00; // 1111 1111 pali slejv, sve ostalo ga isklucuje
 // Lcd pinout settings //LCD je vezan za PORTB
 sbit LCD_RS at RC0_bit;
 sbit LCD_RW at RC1_bit;
@@ -179,6 +196,64 @@ void formBuffer() {
   no_ch++;
 }
 
+unsigned int SPI_Ethernet_UserTCP(unsigned char *remoteHost,
+                                  unsigned int remotePort,
+                                  unsigned int localPort,
+                                  unsigned int reqLength, char *canCloseTCP) {
+  unsigned int len = 0 // reply length
+      unsigned int i;
+
+  if (localPort != 80) {
+    return 0;
+  }
+  PORTA.F4 = 1;
+  for (i = 0; i < 15, i++) {
+    getRequest[i] = SPI_Ethernet_getByte();
+  }
+  getRequest[i] = 0;
+
+  if (memcmp(getRequest, httpMethod, 5)) {
+    return 0;
+  }
+  if (getRequest[5] == 'r') { // RTC
+    // RTC setup
+    Flag2 = 0x01;
+    hours = getRequest[6];
+    minutes = getRequest[7];
+    seconds = getRequest[8];
+  } else if (getRequest[5] == 'b') { // basta
+    flagGarden = 1;
+    TargetGarden = getRequest[6];
+    TargetGardenMode = getRequest[7];
+  } else if (getRequest[5] == 'p') { // Program
+    flagMode = 1;
+    TargetMode = getRequest[6];
+    Mode = getRequest[7];
+    ModeStartHour = getRequest[8];
+    ModeStartMin = getRequest[9];
+    ModeStartSecH = getRequest[10];
+    ModeStartSecL = getRequest[11];
+  } else if (getRequest[5] == 'c') { // cXXFF XX=>targetSlave, FF=>on/off
+    flagControl = 1;
+    TargetControl = getRequest[6];
+    ControlByte = getRequest[7];
+  }
+
+  if (len == 0) {
+    formBuffer();
+    len = putConstString(httpHeader);
+    len += putConstString(httpMimeTypeHTML);
+    len += putString(buffer);
+    for (i = 0; i < 16; i++) {
+      Comm[i] = 0x00;
+      Hour[i] = 0x00;
+      Min[i] = 0x00;
+      Sec[i] = 0x00;
+    }
+  }
+  return len; // return to the library with the number of bytes to transmit
+}
+
 void transmit(unsigned char DATA8b) {
   TXREG = DATA8b;
   while (!TXSTA.TRMT)
@@ -191,6 +266,7 @@ void interrupt() {
     PIR1.TMR1IF = 0;
     if (brojac == 0x04) { // na svakih 125ms prozivka slejvova
       brojac = 0x00;
+      Flag1 = 0x01;
     } else {
       brojac++;
     }
@@ -202,32 +278,101 @@ void interrupt() {
     unsigned char ch;
     PIR1.RCIF = 0; // Recieve flag na 0
     ch = RCREG;    // prima se bajt preko UART-a
+
     switch (OBB) {
-    case 0:
-      if ((ch & 0xE0) == STATUS_CODE) {
-        OBB = 0x01;
-        Comm[SLAVE_ID] = 0;
+    case OBB_IDLE:
+      break;
+    case OBB_CMD_BYTE:
+      if ((ch & CMD_TYPE_MASK == STATUS_CODE)) {
+        if ((ch & CMD_ID_MASK) == SLAVE_ID) {
+          Comm[SLAVE_ID] == 1;
+          OBB = OBB_STATUS_BYTE;
+        } else {
+          OBB = OBB_IDLE;
+        }
+      } else {
+        OBB = OBB_IDLE;
       }
       break;
-    case 1:
-      Status[SLAVE_ID] = ch;
-      OBB = 0x00;
+    case OBB_STATUS_BYTE:
+      Status[SLAVE_ID] = ch; // SWAM0000
+      OBB = OBB_IDLE;
       break;
-    default:
-      OBB = 0x00;
+    case default:
+      OBB = OBB_IDLE;
       break;
     }
   }
-}
-// TODO Dodaj funkciju za funkcije zalivanja
+  // TODO LCD
 
-void main(void) {
+  void main(void) {
 
-  unsigned char ByteX = 0x00;
+    // unsigned char ByteX = 0x00;
 
-  init();
-  init_variables();
+    init();
+    init_variables();
 
-  while (1) {
+    while (1) {
+      if (FLag1 == 0x01) {
+        Flag1 = 0x00;
+        SLAVE_ID++;
+        if (SLAVE_ID == 0x10) {
+          SLAVE_ID = 0x00;
+          PORTA.F4 = 1;
+          if (Flag3 == 0x01) {
+            Flag3 = 0x00;
+            Flag2 = 0x00;
+          } else if (Flag2 == 0x01) {
+            Flag3 = 0x01;
+          }
+        } // svi slejovi pollovani
+        else {
+          PORTA.F4 = 0;
+        }
+
+        ////=====================================================
+        /// TRANSMIT TO SLAVE
+        ///======================================================
+
+        if ((flagControl == 1) && (TargetControl == SLAVE_ID)) {
+          DR = 1; // we send
+          transmit(CONTROL_CODE | SLAVE_ID);
+          transmit(ControlByte);
+          DR = 0;             // we stop sending
+          flagControl = 0;    // clear
+          OBB = OBB_CMD_BYTE; // ocekujem response
+        } else if (Flag3 == 0x01) {
+          DR = 1;
+          transmit(RTC_CODE | SLAVE_ID);
+          transmit(hours);
+          transmit(minutes);
+          transmit(seconds);
+          DR = 0;
+          Flag3 = 0x00;
+          OBB = OBB_CMD_BYTE; // ocekujem response
+        } else if ((flagMode == 1) && TargetMode == SLAVE_ID) {
+          DR = 1;
+          transmit(MODE_CODE | SLAVE_ID);
+          transmit(Mode);
+          transmit(ModeStartHour);
+          transmit(ModeStartMin);
+          transmit(ModeStartSecH);
+          transmit(ModeStartSecL);
+          DR = 0;
+          OBB = OBB_CMD_BYTE; // ocekujem response
+          flagControl = 0;
+        } else if ((flagGarden == 1) && TargetGarden == SLAVE_ID) {
+          DR = 1;
+          transmit(GARDEN_CODE | SLAVE_ID);
+          transmit(TargetGardenMode);
+          OBB = OBB_CMD_BYTE; // ocekujem response
+          DR = 0;
+          flagGarden = 0;
+        } else {
+          DR = 1;
+          transmit(STATUS_CODE | SLAVE_ID);
+          OBB = OBB_CMD_BYTE;
+        }
+      }
+    }
   }
-}
