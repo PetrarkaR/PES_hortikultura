@@ -1,4 +1,3 @@
-
 // definicija ulaznih pinova
 
 #define PinManualBtn PORTB.F0 // Taster za manuelno pokretanje/zaustavljanje
@@ -133,7 +132,7 @@ unsigned char FlowValue = 0x00;
 
 unsigned char FlowMin = 20;
 
-unsigned char FlowMax = 230;
+unsigned char FlowMax = 60;
 
 // privremene za prijem granica protoka
 
@@ -166,6 +165,8 @@ bit RTCSetupFlag = 0;
 bit ProgSetupFlag = 0;
 
 bit FlowSetupFlag = 0;
+
+bit GardenSetupFlag = 0;
 
 bit FlagDisp = 0;
 
@@ -531,6 +532,19 @@ void main()
       SendStatus();
     }
 
+    // izbor programa za bastu
+
+    if (GardenSetupFlag == 1)
+
+    {
+
+      GardenSetupFlag = 0;
+
+      ProgramMode = Tmp_ProgramMode;
+
+      SendStatus();
+    }
+
     // odgovor na prozivku
 
     if (CallFlag == 1)
@@ -750,7 +764,7 @@ void interrupt()
 
   //   RTC_CODE     (0x60) + RTC_BYTES bajtova
 
-  //   GARDEN_CODE  (0x80) + GARDEN_BYTES bajtova
+  //   GARDEN_CODE  (0x80) + GARDEN_BYTES bajtova - izbor programa za bastu
 
   //   MODE_CODE    (0xA0) + MODE_BYTES bajtova
 
@@ -780,25 +794,6 @@ void interrupt()
 
         {
 
-          if ((ch & CMD_INOUT_MASK) == CMD_INOUT_MASK)
-
-            SystemOn = 1;
-
-          else
-
-          {
-
-            SystemOn = 0;
-
-            WateringActive = 0;
-
-            PinPump = 0;
-
-            AlarmActive = 0;
-
-            PinAlarm = 0;
-          }
-
           BytesToReceive = 0x00;
 
           CallFlag = 1;
@@ -809,7 +804,7 @@ void interrupt()
 
         {
 
-          BytesToReceive = RTC_BYTES;
+          BytesToReceive = RTC_BYTES;  // 3
 
           Counter2 = 3;
 
@@ -819,7 +814,7 @@ void interrupt()
 
         {
 
-          BytesToReceive = GARDEN_BYTES;
+          BytesToReceive = GARDEN_BYTES;  // 1
 
           Counter2 = 3;
 
@@ -829,7 +824,7 @@ void interrupt()
 
         {
 
-          BytesToReceive = MODE_BYTES;
+          BytesToReceive = MODE_BYTES;  // 5
 
           Counter2 = 5;
 
@@ -839,7 +834,7 @@ void interrupt()
 
         {
 
-          BytesToReceive = CONTROL_BYTES;
+          BytesToReceive = CONTROL_BYTES;  // 1
 
           Counter2 = 3;
         }
@@ -885,15 +880,15 @@ void interrupt()
 
         ch = ch - 0x30;
 
-        if (ch > 59)
+        if (ch > 23)
 
-          ch = 59;
+          ch = 23;
 
         ConvertTime(ch);
 
-        Tmp_Sec_X1 = X1;
+        Tmp_Hour_X1 = X1;
 
-        Tmp_Sec_X10 = X10;
+        Tmp_Hour_X10 = X10;
 
       }
 
@@ -938,16 +933,6 @@ void interrupt()
 
       }
 
-      else if ((Command & CMD_TYPE_MASK) == GARDEN_CODE)
-
-      {
-
-        BytesToReceive = 0x01;
-
-        Tmp_FlowMin = ch;
-
-      }
-
       else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
 
       {
@@ -971,29 +956,17 @@ void interrupt()
 
         ch = ch - 0x30;
 
-        if (ch > 23)
+        if (ch > 59)
 
-          ch = 23;
+          ch = 59;
 
         ConvertTime(ch);
 
-        Tmp_Hour_X1 = X1;
+        Tmp_Sec_X1 = X1;
 
-        Tmp_Hour_X10 = X10;
+        Tmp_Sec_X10 = X10;
 
         RTCSetupFlag = 1;
-
-      }
-
-      else if ((Command & CMD_TYPE_MASK) == GARDEN_CODE)
-
-      {
-
-        BytesToReceive = 0x00;
-
-        Tmp_FlowMax = ch;
-
-        FlowSetupFlag = 1;
 
       }
 
@@ -1018,44 +991,38 @@ void interrupt()
         ControlByte = ch;
 
         if (ControlByte == 0xFF) {
-
-          if ((SystemOn == 1) && (WateringActive == 0))
-
-          {
-
-            WateringActive = 1;
-
+         SystemOn = 1;
+         if (WateringActive == 0) {
+         WateringActive = 1;
+         ManualMode = 0;
+         RemainingH = 0;
+         RemainingL = 0xB4; //180s
+         PinPump = 1;
+         }
+         }
+         else {
+            SystemOn = 0;                    
+            WateringActive = 0;
             ManualMode = 0;
-
-            RemainingH = ProgDurationH;
-
-            RemainingL = ProgDurationL;
-
-            PinPump = 1;
-          }
-
+            RemainingH = 0;
+            RemainingL = 0;
+            PinPump = 0;
+            AlarmActive = 0;
+            PinAlarm = 0;
         }
-
-        else
-
-        {
-
-          WateringActive = 0;
-
-          ManualMode = 0;
-
-          RemainingH = 0;
-
-          RemainingL = 0;
-
-          PinPump = 0;
-
-          AlarmActive = 0;
-
-          PinAlarm = 0;
-        }
-
         CallFlag = 1;
+      }
+
+      else if ((Command & CMD_TYPE_MASK) == GARDEN_CODE)
+
+      {
+
+        BytesToReceive = 0x00;
+
+        Tmp_ProgramMode = ch;
+
+        GardenSetupFlag = 1;
+
       }
     }
   }

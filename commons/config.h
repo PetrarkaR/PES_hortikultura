@@ -10,7 +10,7 @@
  * ========================================================
  *RTC promenljive 011|x|idid| -> 0x60 + 3 Bytes HH|MM||SS
  *Biranje moda 101|x|idid| -> 0xA0 + 5 Bytes /pXX|HH|MM|SS|SS
- *Biranje baste 100|x|idid| -> 0x80 + 2 Bytes /bXX|YY
+ *Biranje baste 100|x|idid| -> 0x80 + 1 Byte /bXX|YY
  *Control 110|X|idid| -> 0xC0 +1 byte kontrolni za remote on/off |1111 1111|
  * /cXX|FF (ON)
  * ========================================================
@@ -20,7 +20,7 @@
 #define MODE_CODE 0xA0
 #define MODE_BYTES 5
 #define GARDEN_CODE 0x80
-#define GARDEN_BYTES 2
+#define GARDEN_BYTES 1
 #define CONTROL_CODE 0xC0
 #define CONTROL_BYTES 1
 // Protokol Slave -> Master: ===============================
