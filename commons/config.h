@@ -10,25 +10,28 @@
  * ========================================================
  *RTC promenljive 011|x|idid| -> 0x60 + 3 Bytes HH|MM||SS
  *Biranje moda 101|x|idid| -> 0xA0 + 5 Bytes /pXX|HH|MM|SS|SS
- *Biranje baste 100|x|idid| -> 0x80 + 1 Byte /bXX|YY
- *Control 110|X|idid| -> 0xC0 +1 byte kontrolni za remote on/off |1111 1111|
- * /cXX|FF (ON)
  * ========================================================
  */
 #define RTC_CODE 0x60
 #define RTC_BYTES 3
 #define MODE_CODE 0xA0
 #define MODE_BYTES 5
-#define GARDEN_CODE 0x80
-#define GARDEN_BYTES 1
-#define CONTROL_CODE 0xC0
-#define CONTROL_BYTES 1
-// Protokol Slave -> Master: ===============================
-/*
- * Status 001|x|idid ->  0x20 + 1byte [SWAM 0000] -> SystemOn Watering Alarm
- * Mode
- * */
+
+// Slave -> Master status response byte.
 #define STATUS_CODE 0x20
+
+// Byte-id states used while receiving protocol payload bytes.
+// 0 means no payload is currently being received.
+#define BYTE_ID_IDLE 0x00
+#define BYTE_ID_RTC_HOUR 0x04
+#define BYTE_ID_RTC_MIN 0x03
+#define BYTE_ID_RTC_SEC 0x02
+#define BYTE_ID_MODE_PROGRAM 0x09
+#define BYTE_ID_MODE_START_HOUR 0x08
+#define BYTE_ID_MODE_START_MIN 0x07
+#define BYTE_ID_MODE_DURATION_H 0x06
+#define BYTE_ID_MODE_DURATION_L 0x05
+
 #define STATUS_SYSTEM_BIT 0x80 // bit7
 #define STATUS_WATER_BIT 0x40  // bit6
 #define STATUS_ALARM_BIT 0x20  // bit5

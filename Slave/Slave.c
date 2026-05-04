@@ -134,19 +134,11 @@ unsigned char FlowMin = 20;
 
 unsigned char FlowMax = 60;
 
-// privremene za prijem granica protoka
-
-unsigned char Tmp_FlowMin = 0x00;
-
-unsigned char Tmp_FlowMax = 0x00;
-
 // komunikacija
 
 unsigned char ch = 0x00;
 
-unsigned char Command = 0x00;
-
-unsigned char BytesToReceive = 0x00;
+unsigned char byteId = BYTE_ID_IDLE;
 
 unsigned char Counter2 = 0x00;
 
@@ -154,19 +146,11 @@ unsigned char BAJT1 = 0x00;
 
 unsigned char BAJT2 = 0x00;
 
-unsigned char ControlByte = 0x00;
-
 // flagovi
-
-bit CallFlag ;
 
 bit RTCSetupFlag ;
 
 bit ProgSetupFlag;
-
-bit FlowSetupFlag;
-
-bit GardenSetupFlag;
 
 bit FlagDisp ;
 
@@ -458,9 +442,9 @@ void main()
 
     // timeout za visebajtni prijem
 
-    if ((BytesToReceive > 0) && (Counter2 == 0))
+    if ((byteId != BYTE_ID_IDLE) && (Counter2 == 0))
 
-      BytesToReceive = 0;
+      byteId = BYTE_ID_IDLE;
 
     // osvezavanje LCD-a
 
@@ -496,21 +480,6 @@ void main()
       SendStatus();
     }
 
-    // podesavanje granica protoka
-
-    if (FlowSetupFlag == 1)
-
-    {
-
-      FlowSetupFlag = 0;
-
-      FlowMin = Tmp_FlowMin;
-
-      FlowMax = Tmp_FlowMax;
-
-      SendStatus();
-    }
-
     // podesavanje programa
 
     if (ProgSetupFlag == 1)
@@ -534,27 +503,6 @@ void main()
 
     // izbor programa za bastu
 
-    if (GardenSetupFlag == 1)
-
-    {
-
-      GardenSetupFlag = 0;
-
-      ProgramMode = Tmp_ProgramMode;
-
-      SendStatus();
-    }
-
-    // odgovor na prozivku
-
-    if (CallFlag == 1)
-
-    {
-
-      CallFlag = 0;
-
-      SendStatus();
-    }
   }
 }
 
@@ -754,24 +702,6 @@ void interrupt()
     TMR1L = 0xDC;
   }
 
-  // serijski prijem (UART)
-
-  //
-
-  // Protokol Master -> Slave je isti kao u commons/config.h:
-
-  //   STATUS_CODE  (0x20), bit4=SystemOn: prozivka
-
-  //   RTC_CODE     (0x60) + RTC_BYTES bajtova
-
-  //   GARDEN_CODE  (0x80) + GARDEN_BYTES bajtova - izbor programa za bastu
-
-  //   MODE_CODE    (0xA0) + MODE_BYTES bajtova
-
-  //   CONTROL_CODE (0xC0) + CONTROL_BYTES bajtova
-
-  //
-
   if ((PIE1.RCIE) && (PIR1.RCIF))
 
   {
@@ -780,7 +710,7 @@ void interrupt()
 
     PIR1.RCIF = 0;
 
-    if (BytesToReceive == 0x00)
+    if (byteId == BYTE_ID_IDLE)
 
     {
 
@@ -788,75 +718,53 @@ void interrupt()
 
       {
 
-        Command = ch;
-
-        if ((ch & CMD_TYPE_MASK) == STATUS_CODE)
+        switch (ch & CMD_TYPE_MASK)
 
         {
 
-          BytesToReceive = 0x00;
+        case RTC_CODE:
 
-          CallFlag = 1;
 
-        }
+          byteId = BYTE_ID_RTC_HOUR;
 
-        else if ((ch & CMD_TYPE_MASK) == RTC_CODE)
+          Counter2 = RTC_BYTES;
 
-        {
+          break;
 
-          BytesToReceive = RTC_BYTES;  // 3
+        case MODE_CODE:
 
-          Counter2 = 3;
 
-        }
+          byteId = BYTE_ID_MODE_PROGRAM;
 
-        else if ((ch & CMD_TYPE_MASK) == GARDEN_CODE)
+          Counter2 = MODE_BYTES;
 
-        {
+          break;
 
-          BytesToReceive = GARDEN_BYTES;  // 1
+        default:
 
-          Counter2 = 3;
+          byteId = BYTE_ID_IDLE;
 
-        }
-
-        else if ((ch & CMD_TYPE_MASK) == MODE_CODE)
-
-        {
-
-          BytesToReceive = MODE_BYTES;  // 5
-
-          Counter2 = 5;
-
-        }
-
-        else if ((ch & CMD_TYPE_MASK) == CONTROL_CODE)
-
-        {
-
-          BytesToReceive = CONTROL_BYTES;  // 1
-
-          Counter2 = 3;
+          break;
         }
       }
 
     }
 
-    else if (BytesToReceive == 0x05)
+    else if (byteId == BYTE_ID_MODE_PROGRAM)
 
     {
 
-      BytesToReceive = 0x04;
+      byteId = BYTE_ID_MODE_START_HOUR;
 
       Tmp_ProgramMode = ch;
 
     }
 
-    else if (BytesToReceive == 0x04)
+    else if (byteId == BYTE_ID_MODE_START_HOUR)
 
     {
 
-      BytesToReceive = 0x03;
+      byteId = BYTE_ID_MODE_START_MIN;
 
       ch = ch - 0x30;
 
@@ -868,163 +776,110 @@ void interrupt()
 
     }
 
-    else if (BytesToReceive == 0x03)
+    else if (byteId == BYTE_ID_RTC_HOUR)
 
     {
 
-      if ((Command & CMD_TYPE_MASK) == RTC_CODE)
+      byteId = BYTE_ID_RTC_MIN;
 
-      {
+      ch = ch - 0x30;
 
-        BytesToReceive = 0x02;
+      if (ch > 23)
 
-        ch = ch - 0x30;
+        ch = 23;
 
-        if (ch > 23)
+      ConvertTime(ch);
 
-          ch = 23;
+      Tmp_Hour_X1 = X1;
 
-        ConvertTime(ch);
-
-        Tmp_Hour_X1 = X1;
-
-        Tmp_Hour_X10 = X10;
-
-      }
-
-      else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
-
-      {
-
-        BytesToReceive = 0x02;
-
-        ch = ch - 0x30;
-
-        if (ch > 59)
-
-          ch = 59;
-
-        Tmp_ProgStartMin = ch;
-      }
+      Tmp_Hour_X10 = X10;
 
     }
 
-    else if (BytesToReceive == 0x02)
+    else if (byteId == BYTE_ID_MODE_START_MIN)
 
     {
 
-      if ((Command & CMD_TYPE_MASK) == RTC_CODE)
+      byteId = BYTE_ID_MODE_DURATION_H;
 
-      {
+      ch = ch - 0x30;
 
-        BytesToReceive = 0x01;
+      if (ch > 59)
 
-        ch = ch - 0x30;
+        ch = 59;
 
-        if (ch > 59)
-
-          ch = 59;
-
-        ConvertTime(ch);
-
-        Tmp_Min_X1 = X1;
-
-        Tmp_Min_X10 = X10;
-
-      }
-
-      else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
-
-      {
-
-        BytesToReceive = 0x01;
-
-        Tmp_ProgDurationH = ch;
-      }
+      Tmp_ProgStartMin = ch;
 
     }
 
-    else if (BytesToReceive == 0x01)
+    else if (byteId == BYTE_ID_RTC_MIN)
 
     {
 
-      if ((Command & CMD_TYPE_MASK) == RTC_CODE)
+      byteId = BYTE_ID_RTC_SEC;
 
-      {
+      ch = ch - 0x30;
 
-        BytesToReceive = 0x00;
+      if (ch > 59)
 
-        ch = ch - 0x30;
+        ch = 59;
 
-        if (ch > 59)
+      ConvertTime(ch);
 
-          ch = 59;
+      Tmp_Min_X1 = X1;
 
-        ConvertTime(ch);
+      Tmp_Min_X10 = X10;
 
-        Tmp_Sec_X1 = X1;
-
-        Tmp_Sec_X10 = X10;
-
-        RTCSetupFlag = 1;
-
-      }
-
-      else if ((Command & CMD_TYPE_MASK) == MODE_CODE)
-
-      {
-
-        BytesToReceive = 0x00;
-
-        Tmp_ProgDurationL = ch;
-
-        ProgSetupFlag = 1;
-
-      }
-
-      else if ((Command & CMD_TYPE_MASK) == CONTROL_CODE)
-
-      {
-
-        BytesToReceive = 0x00;
-
-        ControlByte = ch;
-
-        if (ControlByte == 0xFF) {
-         SystemOn = 1;
-         if (WateringActive == 0) {
-         WateringActive = 1;
-         ManualMode = 0;
-         RemainingH = 0;
-         RemainingL = 0xB4; //180s
-         PinPump = 1;
-         }
-         }
-         else {
-            SystemOn = 0;                    
-            WateringActive = 0;
-            ManualMode = 0;
-            RemainingH = 0;
-            RemainingL = 0;
-            PinPump = 0;
-            AlarmActive = 0;
-            PinAlarm = 0;
-        }
-        CallFlag = 1;
-      }
-
-      else if ((Command & CMD_TYPE_MASK) == GARDEN_CODE)
-
-      {
-
-        BytesToReceive = 0x00;
-
-        Tmp_ProgramMode = ch;
-
-        GardenSetupFlag = 1;
-
-      }
     }
+
+    else if (byteId == BYTE_ID_MODE_DURATION_H)
+
+    {
+
+      byteId = BYTE_ID_MODE_DURATION_L;
+
+      Tmp_ProgDurationH = ch;
+
+    }
+
+    else if (byteId == BYTE_ID_RTC_SEC)
+
+    {
+
+      byteId = BYTE_ID_IDLE;
+
+      Counter2 = 0;
+
+      ch = ch - 0x30;
+
+      if (ch > 59)
+
+        ch = 59;
+
+      ConvertTime(ch);
+
+      Tmp_Sec_X1 = X1;
+
+      Tmp_Sec_X10 = X10;
+
+      RTCSetupFlag = 1;
+
+    }
+
+    else if (byteId == BYTE_ID_MODE_DURATION_L)
+
+    {
+
+      byteId = BYTE_ID_IDLE;
+
+      Counter2 = 0;
+
+      Tmp_ProgDurationL = ch;
+
+      ProgSetupFlag = 1;
+
+    }
+
   }
 }
 
