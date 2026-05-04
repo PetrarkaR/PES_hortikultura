@@ -3,7 +3,6 @@ main
 		____DoICP
 	init
 		UART1_Init
-	init_variables
 	Lcd_Init
 		Delay_5500us
 		Delay_1us
@@ -12,6 +11,24 @@ main
 		Delay_5500us
 		Delay_50us
 	UpdateLCD
+		Lcd_Chr
+			Lcd_Cmd
+				Delay_1us
+				Delay_5500us
+				Delay_50us
+		LcdByteDec2
+			Lcd_Chr
+				Lcd_Cmd
+					Delay_1us
+					Delay_5500us
+					Delay_50us
+		LcdByteHex
+			HexDigit
+			Lcd_Chr
+				Lcd_Cmd
+					Delay_1us
+					Delay_5500us
+					Delay_50us
 		Lcd_Out
 			Lcd_Cmd
 				Delay_1us
@@ -22,14 +39,13 @@ main
 					Delay_1us
 					Delay_5500us
 					Delay_50us
-		Lcd_Chr
-			Lcd_Cmd
-				Delay_1us
-				Delay_5500us
-				Delay_50us
-	transmit
+	SendStatus
+		Message_StoM
+		transmit
 interrupt
 	IncrementTime
 	DecodeTime
 	ProcessInputs
+		ReadADC
+		Mul_8x8_U
 	ConvertTime

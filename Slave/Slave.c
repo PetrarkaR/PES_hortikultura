@@ -50,15 +50,15 @@ unsigned char SLAVE_ID = 0x00;
 
 // stanja sistema
 
-bit SystemOn = 1;
+bit SystemOn;
 
-bit WateringActive = 0;
+bit WateringActive;
 
-bit AlarmActive = 0;
+bit AlarmActive;
 
-bit ManualMode = 0;
+bit ManualMode;
 
-bit FlowOK = 0;
+bit FlowOK;
 
 // RTC - BCD cifre
 
@@ -158,25 +158,25 @@ unsigned char ControlByte = 0x00;
 
 // flagovi
 
-bit CallFlag = 0;
+bit CallFlag ;
 
-bit RTCSetupFlag = 0;
+bit RTCSetupFlag ;
 
-bit ProgSetupFlag = 0;
+bit ProgSetupFlag;
 
-bit FlowSetupFlag = 0;
+bit FlowSetupFlag;
 
-bit GardenSetupFlag = 0;
+bit GardenSetupFlag;
 
-bit FlagDisp = 0;
+bit FlagDisp ;
 
 // brojaci i debounce
 
 unsigned char Counter = 0x00;
 
-bit TMP_Btn2 = 0;
+bit TMP_Btn2 ;
 
-bit TMP_Btn1 = 0;
+bit TMP_Btn1 ;
 
 // pomocne za ConvertTime
 
@@ -687,10 +687,10 @@ void LcdByteDec2(unsigned char row, unsigned char col, unsigned char val)
 
 {
 
-  unsigned char ones = val;
+  unsigned char ones ;
 
   unsigned char tens = 0x00;
-
+  ones = val  ;
   while (ones > 9)
 
   {

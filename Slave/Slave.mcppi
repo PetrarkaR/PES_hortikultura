@@ -15,10 +15,6 @@ Value=
 Value=0
 [HEAP_SIZE]
 Value=2000
-[EEPROM]
-Count=0
-[ACTIVE_COMMENTS_FILES]
-Count=0
 [FILES]
 Count=1
 File0=Slave.c
@@ -26,29 +22,36 @@ File0=Slave.c
 Count=0
 [IMAGES]
 Count=0
+ActiveImageIndex=-1
 [OPENED_FILES]
-Count=1
-File0=Slave.c
+Count=0
+[EEPROM]
+Count=0
+[ACTIVE_COMMENTS_FILES]
+Count=0
 [OTHER_FILES]
 Count=0
 [SEARCH_PATH]
-Count=12
-Path0=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
-Path1=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
-Path2=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program\
-Path3=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\
-Path4=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
-Path5=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program\
-Path6=D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
-Path7=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs\
-Path8=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
-Path9=N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
-Path10=D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
-Path11=D:\Korisnici\Borko\fakultet\projektovanjeSistema2\
+Count=13
+Path0=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\
+Path1=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
+Path2=C:\Users\Student 1\Documents\PES\Archive\Slave\
+Path3=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
+Path4=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
+Path5=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program\
+Path6=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program\
+Path7=D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
+Path8=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs\
+Path9=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
+Path10=N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
+Path11=D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
+Path12=D:\Korisnici\Borko\fakultet\projektovanjeSistema2\
 [HEADER_PATH]
-Count=0
+Count=1
+Path0=C:\Users\Student 1\Documents\PES\Archive\commons\
 [HEADERS]
-Count=0
+Count=1
+File0=..\commons\config.h
 [PLDS]
 Count=0
 [Useses]
@@ -56,3 +59,7 @@ Count=3
 File0=Lcd
 File1=Lcd_Constants
 File2=UART
+[EXPANDED NODES]
+Node1=Sources
+Node2=Header Files
+Count=2

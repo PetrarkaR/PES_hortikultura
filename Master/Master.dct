@@ -111,6 +111,7 @@ an8
 an8_bit
 an9
 an9_bit
+appendbuffer
 b0
 b1
 b2
@@ -136,13 +137,13 @@ bgst
 bgst_bit
 bor
 bor_bit
-br_ch
 brg16
 brg16_bit
 brgh
 brgh_bit
 brojac
 bsr
+buffer
 byte2double
 bytetohex
 bytetostr
@@ -156,7 +157,6 @@ c2inv
 c2inv_bit
 c2out
 c2out_bit
-cat
 ccp1
 ccp1_bit
 ccp1con
@@ -233,7 +233,6 @@ cm1_bit
 cm2
 cm2_bit
 cmcon
-cmd
 cmie
 cmie_bit
 cmif
@@ -243,6 +242,7 @@ cmip_bit
 comfrem
 comm
 compare_double
+controlbyte
 cren
 cren_bit
 csrc
@@ -304,7 +304,6 @@ div_32x32_s
 div_32x32_u
 div_8x8_s
 div_8x8_u
-dodajuniz
 done
 done_bit
 double2byte
@@ -346,10 +345,13 @@ fixsign32
 flag1
 flag2
 flag3
+flagcontrol
+flaggarden
+flagmode
 floattostr
 flts
 flts_bit
-formirajniz
+formbuffer
 free
 free_bit
 fsr0
@@ -614,6 +616,12 @@ memmove
 memset
 min
 minutes
+mode
+modeprogram
+modestarthour
+modestartmin
+modestartsech
+modestartsecl
 mul_16x16_s
 mul_16x16_u
 mul_32x32_fp
@@ -624,7 +632,7 @@ myipaddr
 mymacaddr
 n
 n_bit
-niz
+no_ch
 not_a
 not_a_bit
 not_address
@@ -660,7 +668,6 @@ nrm4032
 obb
 oerr
 oerr_bit
-operation
 osccon
 oscfie
 oscfie_bit
@@ -720,10 +727,6 @@ pllen_bit
 plusw0
 plusw1
 plusw2
-pom_ch
-pom_des
-pom_jed
-pom_nula
 por
 por_bit
 porta
@@ -797,7 +800,6 @@ ra6
 ra6_bit
 ra7
 ra7_bit
-ramp_id
 rb0
 rb0_bit
 rb1
@@ -910,6 +912,7 @@ setiov3224
 setjmp
 shorttohex
 shorttostr
+slave_id
 smp
 smp_bit
 sp0
@@ -1032,6 +1035,7 @@ sspov
 sspov_bit
 sspstat
 status
+status1
 stkful
 stkful_bit
 stkovf
@@ -1136,6 +1140,10 @@ t3con
 t3sync
 t3sync_bit
 tablat
+targetcontrol
+targetgarden
+targetgardenprogram
+targetmode
 tblptr
 tblptrh
 tblptrl
@@ -1308,7 +1316,6 @@ uart1_read_text
 uart1_tx_idle
 uart1_write
 uart1_write_text
-updatelcd
 vcfg0
 vcfg0_bit
 vcfg1

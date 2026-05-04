@@ -12,7 +12,7 @@ typedef struct {
 const unsigned char httpHeader[] = "HTTP/1.1 200 OK\nContent-type: ";
 const unsigned char httpMimeTypeHTML[] = "text/html\n\n";
 const unsigned char httpMimeTypeScript[] = "text/plain\n\n";
-const unsigned char httpMethod[] = "GET /";
+ unsigned char httpMethod[] = "GET /";
 
 sfr sbit SPI_Ethernet_Rst at RA1_bit; // reset PIN
 sfr sbit SPI_Ethernet_CS at RA0_bit;  // chip select PIN
@@ -21,8 +21,8 @@ sfr sbit SPI_Ethernet_CS_Direction at TRISA0_bit;
 
 /*IP i MAC adrese */
 // NIC
-const unsigned char myMacAddr[6] = MAC_ADDR;
-const unsigned char myIpAddr[4] = IP_ADDR;
+ unsigned char myMacAddr[6] = MAC_ADDR;
+ unsigned char myIpAddr[4] = IP_ADDR;
 unsigned char getRequest[20];
 unsigned char dyna[31];
 unsigned long httpCounter = 0;
@@ -38,24 +38,26 @@ unsigned char Mode[16]; // 16 modova za zalivanje
 unsigned char Hour[16]; /*Podaci o vremenu  */
 unsigned char Min[16];
 unsigned char Sec[16];
-unsigned char Status[16]; // SWAM
+unsigned char Status1[16]; // SWAM
 // Modovi za slejv
 // PROGRAM /p |XX|HH|MM|SS|SS|
-bit flagMode = 0;
+
 unsigned char TargetMode = 0x00;
-unsigned char Mode = 0x00;
+unsigned char ModeProgram = 0x00;
 unsigned char ModeStartHour = 0x00;
 unsigned char ModeStartMin = 0x00;
 unsigned char ModeStartSecH = 0x00;
 unsigned char ModeStartSecL = 0x00;
+bit flagMode;
 // Garden
 unsigned char TargetGarden = 0x00;
-unsigned char TargetGardenMode = 0x00;
-bit flagGarden = 0;
+unsigned char TargetGardenProgram = 0x00;
+bit flagGarden;
 // Control
+unsigned char TargetControl =0x00;
 unsigned char ControlByte = 0x00;
-bit flagControl = 0;
-0x00; // 1111 1111 pali slejv, sve ostalo ga isklucuje
+bit flagControl;
+// 1111 1111 pali slejv, sve ostalo ga isklucuje
 // Lcd pinout settings //LCD je vezan za PORTB
 sbit LCD_RS at RC0_bit;
 sbit LCD_RW at RC1_bit;
@@ -75,19 +77,16 @@ sbit LCD_D5_Direction at TRISB5_bit;
 sbit LCD_D4_Direction at TRISB4_bit;
 
 void init_variables() {
-  br_ch = 0x00;
+  no_ch = 0x00;
   OBB = 0x00;
   Flag1 = 0x00;
   Flag2 = 0x00;
   Flag3 = 0x00;
-  brojac = 0x00;
+ // cnt = 0x00;
   SLAVE_ID = 0x0F;
-  SWAMByte = 0x00;
   for (i = 0; i < 16; i++) {
-    Operation[i] = 0x00;
+    Mode[i] = 0x00;
     Comm[i] = 0x00;
-    Cmd[i] = 0x00;
-    Cat[i] = 0x00;
     Hour[i] = 0x00;
     Min[i] = 0x00;
     Sec[i] = 0x00;
@@ -135,10 +134,12 @@ void init() {
   TXSTA.TXEN = 1;
   RCSTA.SPEN = 1;
   RCSTA.CREN = 1;
-
-  Lcd_Init();
-  Lcd_Cmd(_LCD_CURSOR_OFF);
-  UpdateLCD();
+  SPI1_Init_Advanced(_SPI_MASTER_OSC_DIV64, _SPI_DATA_SAMPLE_MIDDLE,
+                                          _SPI_CLK_IDLE_LOW, _SPI_LOW_2_HIGH);
+  SPI_Ethernet_Init(myMacAddr, myIpAddr, SPI_Ethernet_FULLDUPLEX);
+ // Lcd_Init();
+ // Lcd_Cmd(_LCD_CURSOR_OFF);
+ // UpdateLCD();
 }
 
 // Ethernet funkcije
@@ -153,7 +154,7 @@ unsigned int putConstString(const char *s) {
 unsigned int putString(char *s) {
   unsigned int cnt = 0;
   while (*s) {
-    SPI_Ethetnet_putByte(*s++);
+    SPI_Ethernet_putByte(*s++);
     cnt++;
   }
   return (cnt);
@@ -167,16 +168,18 @@ void appendBuffer(char *p_ch) {
 }
 void formBuffer() {
   unsigned char i = 0;
+  unsigned char txt[4];
   unsigned char StatusByte = 0x00;
-  no_ch = 0; // start of buffer
+  no_ch = 0x00; // start of buffer
 
+  
   for (i = 0; i < 16; i++) {
     if (Comm[i] == 1) { // samo slejvovi koji su se odazvali
       appendBuffer("Basta: ");
       ByteToStr(i, txt);
       appendBuffer(txt); // append broj baste
       appendBuffer(" ");
-      StatusByte = Status[i];
+      StatusByte = Status1[i];
       if (!(StatusByte & STATUS_SYSTEM_BIT)) {
         appendBuffer("OFF\n\n");
       } else if (StatusByte & STATUS_WATER_BIT) {
@@ -195,19 +198,20 @@ void formBuffer() {
   buffer[no_ch] = 0x00;
   no_ch++;
 }
-
+unsigned int SPI_Ethernet_UserUDP(unsigned char *remoteHost, unsigned int remotePort, unsigned int destPort, unsigned int reqLength, TEthPktFlags *flags){
+ return 0;}
 unsigned int SPI_Ethernet_UserTCP(unsigned char *remoteHost,
                                   unsigned int remotePort,
                                   unsigned int localPort,
                                   unsigned int reqLength, char *canCloseTCP) {
-  unsigned int len = 0 // reply length
+  unsigned int len = 0; // reply length
       unsigned int i;
 
   if (localPort != 80) {
     return 0;
   }
   PORTA.F4 = 1;
-  for (i = 0; i < 15, i++) {
+  for (i = 0; i < 15; i++) {
     getRequest[i] = SPI_Ethernet_getByte();
   }
   getRequest[i] = 0;
@@ -224,11 +228,11 @@ unsigned int SPI_Ethernet_UserTCP(unsigned char *remoteHost,
   } else if (getRequest[5] == 'b') { // basta
     flagGarden = 1;
     TargetGarden = getRequest[6];
-    TargetGardenMode = getRequest[7];
+    TargetGardenProgram = getRequest[7];
   } else if (getRequest[5] == 'p') { // Program
     flagMode = 1;
     TargetMode = getRequest[6];
-    Mode = getRequest[7];
+    ModeProgram = getRequest[7];
     ModeStartHour = getRequest[8];
     ModeStartMin = getRequest[9];
     ModeStartSecH = getRequest[10];
@@ -295,13 +299,14 @@ void interrupt() {
       }
       break;
     case OBB_STATUS_BYTE:
-      Status[SLAVE_ID] = ch; // SWAM0000
+      Status1[SLAVE_ID] = ch; // SWAM0000
       OBB = OBB_IDLE;
       break;
-    case default:
+     default:
       OBB = OBB_IDLE;
       break;
     }
+  } 
   }
   // TODO LCD
 
@@ -313,6 +318,7 @@ void interrupt() {
     init_variables();
 
     while (1) {
+    SPI_Ethernet_doPacket();
       if (FLag1 == 0x01) {
         Flag1 = 0x00;
         SLAVE_ID++;
@@ -353,20 +359,20 @@ void interrupt() {
         } else if ((flagMode == 1) && TargetMode == SLAVE_ID) {
           DR = 1;
           transmit(MODE_CODE | SLAVE_ID);
-          transmit(Mode);
+          transmit(ModeProgram);
           transmit(ModeStartHour);
           transmit(ModeStartMin);
           transmit(ModeStartSecH);
           transmit(ModeStartSecL);
           DR = 0;
           OBB = OBB_CMD_BYTE; // ocekujem response
-          flagControl = 0;
+          flagMode = 0;
         } else if ((flagGarden == 1) && TargetGarden == SLAVE_ID) {
           DR = 1;
           transmit(GARDEN_CODE | SLAVE_ID);
-          transmit(TargetGardenMode);
-          OBB = OBB_CMD_BYTE; // ocekujem response
+          transmit(TargetGardenProgram);
           DR = 0;
+          OBB = OBB_CMD_BYTE; // ocekujem response
           flagGarden = 0;
         } else {
           DR = 1;

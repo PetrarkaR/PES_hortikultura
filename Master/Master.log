@@ -1,16 +1,9 @@
-Line	MessageNo	File Name
-0	1	mikroCPIC1618.exe -MSF -DBG -pP18F2525 -DL -O11111114 -fo25 -N"I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\Master.mcppi" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\" -SP"I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\uses\P18\" -SP"D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program\" "Master.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CString.mcl" "__Lib_Conversions.mcl" "__Lib_SPI_c345.mcl" "__Lib_UART_c67.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_EthEnc28j60.mcl"	 
-warning: 0	1501	Specified search path does not exist: 'D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program'	 
-hint: 0	1138	Available RAM: 3947 [bytes], Available ROM: 49152 [bytes]	 
-diagnostics: 0	122	Compilation Started	P18F2525.c
-diagnostics: 1193	123	Compiled Successfully	P18F2525.c
-diagnostics: 0	122	Compilation Started	__Lib_Delays.c
-diagnostics: 164	123	Compiled Successfully	__Lib_Delays.c
-diagnostics: 0	126	All files Preprocessed in 79 ms	 
+0	1	mikroCPIC1618.exe -MSF -DBG -pP18F2525 -DL -O11111114 -fo25 -N"C:\Users\Student 1\Documents\PES\Archive\Master\Master.mcppi" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\uses\P18\" -SP"C:\Users\Student 1\Documents\PES\Archive\Master\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\" -SP"I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\" -SP"D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program\" -SP"C:\Users\Student 1\Documents\PES\Archive\commons\" -IP"C:\Users\Student 1\Documents\PES\Archive\commons\" "Master.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_CString.mcl" "__Lib_Conversions.mcl" "__Lib_SPI_c345.mcl" "__Lib_UART_c67.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_EthEnc28j60.mcl"	 
+diagnostics: 0	126	All files Preprocessed in 31 ms	 
 diagnostics: 0	122	Compilation Started	Master.c
-warning: 422	1509	Generated baud rate is 19290 bps (error = 0.47 percent)	Master.c
-diagnostics: 501	123	Compiled Successfully	Master.c
-diagnostics: 0	127	All files Compiled in 359 ms	 
-error: 1351	437	Call signature does not match the function definition signature 'SPI_Ethernet_UserUDP'	__Lib_EthEnc28j60.c
-0	0		
-error: 0	102	Finished (with errors): 22 Jan 2020, 13:11:58	Master.mcppi
+diagnostics: 384	123	Compiled Successfully	Master.c
+diagnostics: 0	127	All files Compiled in 125 ms	 
+diagnostics: 0	125	Project Linked Successfully	Master.mcppi
+diagnostics: 0	128	Linked in 609 ms	 
+diagnostics: 0	129	Project 'Master.mcppi' completed: 922 ms	 
+diagnostics: 0	103	Finished successfully: 04 May 2026, 16:05:31	Master.mcppi

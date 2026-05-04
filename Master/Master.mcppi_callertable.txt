@@ -2,29 +2,6 @@ main
 	__CC2DW
 	init
 		UART1_Init
-		Lcd_Init
-			Delay_5500us
-			Delay_1us
-		Lcd_Cmd
-			Delay_1us
-			Delay_5500us
-			Delay_50us
-		UpdateLCD
-			Lcd_Out
-				Lcd_Cmd
-					Delay_1us
-					Delay_5500us
-					Delay_50us
-				Lcd_Chr_CP
-					Lcd_Cmd
-						Delay_1us
-						Delay_5500us
-						Delay_50us
-			Lcd_Chr
-				Lcd_Cmd
-					Delay_1us
-					Delay_5500us
-					Delay_50us
 		SPI1_Init_Advanced
 		SPI_Ethernet_Init
 			SPI_Ethernet_delay
@@ -191,7 +168,7 @@ main
 						SPI_Ethernet_writeAddr
 							____DoIFC
 						____DoIFC
-				Mul_16X16_U
+				Mul_16x16_U
 				SPI_Ethernet_getBytes
 					SPI_Ethernet_writeAddr
 						____DoIFC
@@ -573,10 +550,10 @@ main
 					SPI_Ethernet_getByte
 						____DoIFC
 					memcmp
-					formirajNiz
-						dodajUNiz
+					formBuffer
+						appendBuffer
 						ByteToStr
-							Div_8X8_U
+							Div_8x8_U
 					putConstString
 						SPI_Ethernet_putByte
 							____DoIFC
@@ -585,21 +562,5 @@ main
 							____DoIFC
 			SPI_Ethernet_setBitReg
 				____DoIFC
-	UpdateLCD
-		Lcd_Out
-			Lcd_Cmd
-				Delay_1us
-				Delay_5500us
-				Delay_50us
-			Lcd_Chr_CP
-				Lcd_Cmd
-					Delay_1us
-					Delay_5500us
-					Delay_50us
-		Lcd_Chr
-			Lcd_Cmd
-				Delay_1us
-				Delay_5500us
-				Delay_50us
 	transmit
 interrupt

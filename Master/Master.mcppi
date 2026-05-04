@@ -17,10 +17,6 @@ Value=0
 Value=2000
 [LIB_EXPANDED_NODES]
 Count=0
-[EEPROM]
-Count=0
-[ACTIVE_COMMENTS_FILES]
-Count=0
 [EXPANDED_NODES]
 Node0=Sources
 Count=1
@@ -31,23 +27,32 @@ File0=Master.c
 Count=0
 [IMAGES]
 Count=0
+ActiveImageIndex=-1
 [OPENED_FILES]
 Count=1
 File0=Master.c
+[EEPROM]
+Count=0
+[ACTIVE_COMMENTS_FILES]
+Count=0
 [OTHER_FILES]
 Count=0
 [SEARCH_PATH]
-Count=6
-Path0=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
-Path1=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\
-Path2=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\
-Path3=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Defs\
-Path4=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\uses\P18\
-Path5=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program\
+Count=8
+Path0=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\
+Path1=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\uses\P18\
+Path2=C:\Users\Student 1\Documents\PES\Archive\Master\
+Path3=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
+Path4=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\
+Path5=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\
+Path6=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program\
+Path7=C:\Users\Student 1\Documents\PES\Archive\commons\
 [HEADER_PATH]
-Count=0
+Count=1
+Path0=C:\Users\Student 1\Documents\PES\Archive\commons\
 [HEADERS]
-Count=0
+Count=1
+File0=..\commons\config.h
 [PLDS]
 Count=0
 [Useses]
@@ -59,3 +64,7 @@ File3=UART
 File4=Lcd_Constants
 File5=Lcd
 File6=Conversions
+[EXPANDED NODES]
+Node1=Sources
+Node2=Header Files
+Count=2
