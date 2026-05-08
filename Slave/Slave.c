@@ -696,7 +696,7 @@ void init()
   PIE1   = 0b00000000;   // za sad sve onemoguceno, palimo pojedinacno dole
 
   // --- Timer1 ---
-  // Preskaler 1:8, interni clock
+  // NE DIRAJ !!!!
   T1CON  = 0b00110000;
   // Pocetna vrednost za 100ms interval
   // (0x10000 - 0x0BDC = 0xF424 = 62500 tikova)
