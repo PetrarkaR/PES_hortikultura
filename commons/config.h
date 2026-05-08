@@ -13,7 +13,7 @@
  * ========================================================
  */
 #define RTC_CODE 0x60
-#define RTC_BYTES 3
+#define RTC_BYTES 3 // DONE
 #define MODE_CODE 0xA0
 #define MODE_BYTES 5
 
@@ -45,7 +45,7 @@
 #define IP_ADDR {10, 99, 12, 1}
 #define HTTP_PORT 80
 // OBB MasterRecieve
-#define OBB_IDLE 0x00
-#define OBB_CMD_BYTE 0x02
-#define OBB_STATUS_BYTE 0x01
+#define BYTE_ID_IDLE 0x00
+#define BYTE_ID_CMD_BYTE 0x02
+#define BYTE_ID_STATUS_BYTE 0x01
 #endif

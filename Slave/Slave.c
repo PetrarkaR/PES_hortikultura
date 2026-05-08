@@ -1,18 +1,11 @@
 // definicija ulaznih pinova
-
 #define PinManualBtn PORTB.F0 // Taster za manuelno pokretanje/zaustavljanje
-
 // RA0 = analogni ulaz za senzor protoka (potenciometar na ploci)
-
 // definicija izlaznih pinova
-
-#define PinPump PORTA.F2 // Pumpa (1=ukljucena)
-
-#define PinAlarm PORTA.F3 // Zvucni alarm
-
+#define PinPump PORTA.F2      // Pumpa (1=ukljucena)
+#define PinAlarm PORTA.F3     // Zvucni alarm
 #define PinStatusLED PORTA.F4 // LED - sistem ukljucen
-
-#define DR PORTC.F5 // RS485 smer (1=transmit, 0=receive)
+#define DR PORTC.F5           // RS485 smer (1=transmit, 0=receive)
 
 #include "../commons/config.h"
 
@@ -148,19 +141,19 @@ unsigned char BAJT2 = 0x00;
 
 // flagovi
 
-bit RTCSetupFlag ;
+bit RTCSetupFlag;
 
 bit ProgSetupFlag;
 
-bit FlagDisp ;
+bit FlagDisp;
 
 // brojaci i debounce
 
 unsigned char Counter = 0x00;
 
-bit TMP_Btn2 ;
+bit TMP_Btn2;
 
-bit TMP_Btn1 ;
+bit TMP_Btn1;
 
 // pomocne za ConvertTime
 
@@ -232,59 +225,27 @@ unsigned char ReadADC()
 void ProcessInputs()
 
 {
-
   // debounce manuelnog tastera - rastuca ivica (1s reakcija)
-
   TMP_Btn2 = TMP_Btn1;
-
   if (PinManualBtn == 1)
-
     TMP_Btn1 = 1;
-
   else
-
     TMP_Btn1 = 0;
-
-  if ((TMP_Btn2 == 0) && (TMP_Btn1 == 1))
-
-  {
-
-    if (SystemOn == 1)
-
-    {
-
-      if (WateringActive == 1)
-
-      {
-
+  if ((TMP_Btn2 == 0) && (TMP_Btn1 == 1)) {
+    if (SystemOn == 1) {
+      if (WateringActive == 1) {
         WateringActive = 0;
-
         ManualMode = 0;
-
         RemainingH = 0;
-
         RemainingL = 0;
-
         PinPump = 0;
-
         AlarmActive = 0;
-
         PinAlarm = 0;
-
-      }
-
-      else
-
-      {
-
+      } else {
         WateringActive = 1;
-
         ManualMode = 1;
-
         RemainingH = ProgDurationH;
-
         RemainingL = ProgDurationL;
-
         PinPump = 1;
       }
     }
@@ -502,7 +463,6 @@ void main()
     }
 
     // izbor programa za bastu
-
   }
 }
 
@@ -609,82 +569,46 @@ void ConvertTime(unsigned char ch)
   }
 }
 
-unsigned char HexDigit(unsigned char val)
-
-{
-
+unsigned char HexDigit(unsigned char val) {
   val = val & 0x0F;
-
   if (val < 10)
-
     return val + '0';
 
   return val + 'A' - 10;
 }
 
-void LcdByteHex(unsigned char row, unsigned char col, unsigned char val)
-
-{
-
+void LcdByteHex(unsigned char row, unsigned char col, unsigned char val) {
   Lcd_Chr(row, col, HexDigit(val >> 4));
-
   Lcd_Chr(row, col + 1, HexDigit(val));
 }
 
-void LcdByteDec2(unsigned char row, unsigned char col, unsigned char val)
-
-{
-
-  unsigned char ones ;
-
-  unsigned char tens = 0x00;
-  ones = val  ;
-  while (ones > 9)
-
-  {
-
+void LcdByteDec2(unsigned char row, unsigned char col, unsigned char val) {
+  unsigned char ones;
+  unsigned char tens;
+  tens = 0x00;
+  ones = val;
+  while (ones > 9) {
     ones = ones - 10;
-
     tens++;
   }
-
   Lcd_Chr(row, col, tens + '0');
-
   Lcd_Chr(row, col + 1, ones + '0');
 }
 
-void interrupt()
-
-{
-
+void interrupt() {
   // prekid tajmera (svake 100ms)
-
-  if ((PIE1.TMR1IE == 1) && (PIR1.TMR1IF == 1))
-
-  {
-
+  if ((PIE1.TMR1IE == 1) && (PIR1.TMR1IF == 1)) {
     PIR1.TMR1IF = 0;
 
     // brojac do 1s (10 x 100ms)
 
-    if (Counter == 9)
-
-    {
-
+    if (Counter == 9) {
       Counter = 0;
-
       IncrementTime();
-
       DecodeTime();
-
       ProcessInputs();
-
       FlagDisp = 1;
-
-    }
-
-    else
-
+    } else
       Counter++;
 
     // timeout za visebajtni prijem
@@ -702,119 +626,54 @@ void interrupt()
     TMR1L = 0xDC;
   }
 
-  if ((PIE1.RCIE) && (PIR1.RCIF))
-
-  {
-
+  if ((PIE1.RCIE) && (PIR1.RCIF)) {
     ch = RCREG;
-
     PIR1.RCIF = 0;
-
-    if (byteId == BYTE_ID_IDLE)
-
-    {
-
-      if ((ch & CMD_ID_MASK) == SLAVE_ID)
-
-      {
-
-        switch (ch & CMD_TYPE_MASK)
-
-        {
-
+    if (byteId == BYTE_ID_IDLE) {
+      if ((ch & CMD_ID_MASK) == SLAVE_ID) {
+        switch (ch & CMD_TYPE_MASK) {
         case RTC_CODE:
-
-
           byteId = BYTE_ID_RTC_HOUR;
-
           Counter2 = RTC_BYTES;
-
           break;
-
         case MODE_CODE:
-
-
           byteId = BYTE_ID_MODE_PROGRAM;
-
           Counter2 = MODE_BYTES;
-
           break;
-
         default:
-
           byteId = BYTE_ID_IDLE;
-
           break;
         }
       }
 
     }
 
-    else if (byteId == BYTE_ID_MODE_PROGRAM)
-
-    {
-
+    else if (byteId == BYTE_ID_MODE_PROGRAM) {
       byteId = BYTE_ID_MODE_START_HOUR;
-
       Tmp_ProgramMode = ch;
-
-    }
-
-    else if (byteId == BYTE_ID_MODE_START_HOUR)
-
-    {
-
+    } else if (byteId == BYTE_ID_MODE_START_HOUR) {
       byteId = BYTE_ID_MODE_START_MIN;
-
       ch = ch - 0x30;
-
       if (ch > 23)
-
         ch = 23;
-
       Tmp_ProgStartHour = ch;
-
-    }
-
-    else if (byteId == BYTE_ID_RTC_HOUR)
-
-    {
-
+    } else if (byteId == BYTE_ID_RTC_HOUR) {
       byteId = BYTE_ID_RTC_MIN;
-
       ch = ch - 0x30;
-
       if (ch > 23)
-
         ch = 23;
-
       ConvertTime(ch);
-
       Tmp_Hour_X1 = X1;
-
       Tmp_Hour_X10 = X10;
-
-    }
-
-    else if (byteId == BYTE_ID_MODE_START_MIN)
-
-    {
-
+    } else if (byteId == BYTE_ID_MODE_START_MIN) {
       byteId = BYTE_ID_MODE_DURATION_H;
-
       ch = ch - 0x30;
-
       if (ch > 59)
-
         ch = 59;
-
       Tmp_ProgStartMin = ch;
-
     }
 
-    else if (byteId == BYTE_ID_RTC_MIN)
-
-    {
+    else if (byteId == BYTE_ID_RTC_MIN) {
 
       byteId = BYTE_ID_RTC_SEC;
 
@@ -877,111 +736,57 @@ void interrupt()
       Tmp_ProgDurationL = ch;
 
       ProgSetupFlag = 1;
-
     }
-
   }
 }
 
-void UpdateLCD()
-
-{
-
+void UpdateLCD() {
   unsigned char DispH = 0x00;
-
   unsigned char DispL = 0x00;
-
   // --- red 1: tekuce vreme ---
-
   Lcd_Chr(1, 1, Hour_X10 + '0');
-
   Lcd_Chr(1, 2, Hour_X1 + '0');
-
   Lcd_Chr(1, 3, ':');
-
   Lcd_Chr(1, 4, Min_X10 + '0');
-
   Lcd_Chr(1, 5, Min_X1 + '0');
-
   Lcd_Chr(1, 6, ':');
-
   Lcd_Chr(1, 7, Sec_X10 + '0');
-
   Lcd_Chr(1, 8, Sec_X1 + '0');
-
   // --- red 1: vreme pocetka programa ---
-
   Lcd_Chr(1, 9, ' ');
-
   Lcd_Chr(1, 10, ' ');
-
   LcdByteDec2(1, 11, ProgStartHour);
-
   Lcd_Chr(1, 13, ':');
-
   LcdByteDec2(1, 14, ProgStartMin);
-
   // --- red 1 pozicija 16: P ako pumpa radi ---
-
   if (WateringActive == 1)
-
     Lcd_Chr(1, 16, 'P');
-
   else
-
     Lcd_Chr(1, 16, ' ');
-
   // --- red 2: trajanje/protok bez deljenja ---
-
-  if (WateringActive == 1)
-
-  {
-
+  if (WateringActive == 1) {
     DispH = RemainingH;
-
     DispL = RemainingL;
-
-  }
-
-  else
-
-  {
-
+  } else {
     DispH = ProgDurationH;
-
     DispL = ProgDurationL;
   }
-
   Lcd_Chr(2, 1, 'D');
-
   Lcd_Chr(2, 2, ':');
-
   LcdByteHex(2, 3, DispH);
-
   LcdByteHex(2, 5, DispL);
-
   Lcd_Chr(2, 7, ' ');
-
   Lcd_Chr(2, 8, 'F');
-
   Lcd_Chr(2, 9, ':');
-
   LcdByteHex(2, 10, FlowValue);
-
   Lcd_Out(2, 12, "    ");
-
   if (AlarmActive == 1)
-
     Lcd_Chr(2, 16, 'A');
-
   else
-
     Lcd_Chr(2, 16, ' ');
 }
 
-void Message_StoM()
-
-{
+void Message_StoM() {
 
   BAJT1 = STATUS_CODE | SLAVE_ID;
 
