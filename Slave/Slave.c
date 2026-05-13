@@ -20,9 +20,9 @@ unsigned char Tmp_time_left_high = 0x00;
 unsigned char Tmp_time_left_low  = 0x00;
 unsigned char time_left_high     = 0x00;
 unsigned char time_left_low      = 0x00;
-unsigned char ProgStartHour      = 0x00;   // declare only if not already in config.h
+unsigned char ProgStartHour      = 0x00;   
 unsigned char ProgStartMin       = 0x00;
-unsigned int  WateringSec        = 0;      // 16-bit countdown of remaining seconds
+unsigned int  WateringSec        = 0;      
 
 bit ProgramSetupFlag;
 
@@ -149,7 +149,7 @@ void init_variables()
    ProgramSetupFlag = 0;
    ProgStartHour    = 0x00;
    ProgStartMin     = 0x00;
-   PinSystemOn      = 0;
+   PinSystemOn      = 1;
    PinWatering      = 0;
    PinAlarm         = 0;
 }
@@ -181,7 +181,7 @@ void DecodeTime()
 void ProcessInputs()
 {
 
-   // Taster (PORTB.F0) — rising edge toggles ManualMode
+   // Taster (PORTB.F0) - manual mode
    TMP_Taster2 = TMP_Taster1;
    if (PinTaster == 1) TMP_Taster1 = 1;
    else                TMP_Taster1 = 0;
@@ -192,7 +192,7 @@ void ProcessInputs()
       ManualEvent = 1;     // consumed by main
    }
 
-   // Reset (PORTB.F2) — rising edge sets ResetEvent
+   // Reset (PORTB.F2) - reset. sta reci.
    TMP_Reset2 = TMP_Reset1;
    if (PinReset == 1) {TMP_Reset1 = 1;}
    else               {TMP_Reset1 = 0;}
@@ -204,20 +204,20 @@ void ProcessInputs()
 }
 
 unsigned char buildStatusByte()
-{
+{ //SWAM system, watering, alarm, manual -system on je samo za struju prakticno. 
    unsigned char status = 0x00;
    if (PinSystemOn) status |= STATUS_SYSTEM_BIT;
    if (PinWatering) status |= STATUS_WATER_BIT;
    if (PinAlarm)    status |= STATUS_ALARM_BIT;
-   if (ManualMode)   status|= STATUS_MANUAL_BIT;
+   if (ManualMode)  status |= STATUS_MANUAL_BIT;
    return status;
 }
 
-// Decimal (0-99) -> packed BCD (e.g. 23 -> 0x23). Used at program commit
-// so ProgStartHour/Min compare cleanly against Hours/Minutes.
+//ezotericni kod za konverziju iz decimalnog u bcd
 unsigned char toBcd(unsigned char val)
 {
-   unsigned char tens = 0;
+   unsigned char tens;
+   tens = 0;
    while (val > 9) { val -= 10; tens++; }
    return (tens << 4) | val;
 }
@@ -238,32 +238,31 @@ void main()
       {
          ResetEvent  = 0;
          PinWatering = 0;
-         PinSystemOn = 0;
+         PinSystemOn = 1;
          PinAlarm    = 0;
          ManualMode  = 0;
          ManualEvent = 0;
          WateringSec = 0;
       }
 
-      // --- Manual button: 1st press starts, 2nd press kills ---
+      // manual dugme , kao toggle radi
       if (ManualEvent == 1)
       {
          ManualEvent = 0;
          if (ManualMode == 1)
          {
-            // ManualMode just toggled to 1 -> begin manual watering
+            //zalivam  180s
             WateringSec = 180;
             PinWatering = 1;
             PinSystemOn = 1;
          }
          else
          {
-            // ManualMode just toggled to 0 -> kill the timer
+            // gasi zalivanje, ali ne diraj program
             WateringSec = 0;
          }
       }
 
-      // --- 1 Hz tick: schedule, countdown, flow check, LCD ---
       if (UpdateLCDFlag == 1)
       {
          UpdateLCDFlag = 0;
@@ -286,12 +285,11 @@ void main()
             if (WateringSec == 0)
             {
                PinWatering = 0;
-               PinSystemOn = 0;
+               PinSystemOn = 1;
                ManualMode  = 0;
             }
          }
 
-         // Flow check (only meaningful while a valve is open)
          FlowValue = ReadADC();
          if (PinWatering == 1)
             {
@@ -313,7 +311,7 @@ void main()
       }
       if (CallFlag == 1)
       {
-         // Poll response: status command byte + SWAM byte
+         // Poll response
          DR = 1;
          transmit(STATUS_CODE | GARDEN_ID);
          transmit(buildStatusByte());
@@ -459,27 +457,26 @@ void interrupt()
             }
             else if ((ch & 0xE0) == 0xA0)
                {
-                  // programming command: 4 data bytes follow
                   ByteID = 0x08;
                   Counter2 = 6;
                }
          }
       }
-      else if (ByteID == 0x03)          // first byte: hours
+      else if (ByteID == 0x03)          
       {
          ConvertTime(ch);
          Tmp_Hour_X1  = X1;
          Tmp_Hour_X10 = X10;
          ByteID = 0x02;
       }
-      else if (ByteID == 0x02)          // second byte: minutes
+      else if (ByteID == 0x02)          
       {
          ConvertTime(ch);
          Tmp_Min_X1   = X1;
          Tmp_Min_X10  = X10;
          ByteID = 0x01;
       }
-      else if (ByteID == 0x01)          // third byte: seconds
+      else if (ByteID == 0x01)          
       {
          ConvertTime(ch);
          Tmp_Sec_X1   = X1;
