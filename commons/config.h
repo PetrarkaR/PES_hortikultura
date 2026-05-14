@@ -13,15 +13,18 @@
  * ========================================================
  */
 #define RTC_CODE 0x60
+// 011 za RTC xbit je 1 i 4 jedinice za slave ID i kao zbir cine 5
+// broadcast bitova 01111111
+#define RTC_BROADCAST 0x7F
 #define RTC_BYTES 3 // DONE
 #define MODE_CODE 0xA0
 #define MODE_BYTES 5
 
 // Slave -> Master status response byte.
 #define STATUS_CODE 0x20
-
-// Byte-id states used while receiving protocol payload bytes.
-// 0 means no payload is currently being received.
+// Slave salje SWAM (SystemON Watering Alarm Mode 0000 byte)
+//  Byte-id states used while receiving protocol payload bytes.
+//  0 means no payload is currently being received.
 #define BYTE_ID_IDLE 0x00
 #define BYTE_ID_RTC_HOUR 0x04
 #define BYTE_ID_RTC_MIN 0x03

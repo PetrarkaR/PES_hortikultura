@@ -1,0 +1,44 @@
+\chapter{Protokol }
+\hypertarget{md_docs}{}\label{md_docs}\index{Protokol@{Protokol}}
+\label{md_docs_autotoc_md0}%
+\Hypertarget{md_docs_autotoc_md0}%
+
+
+Slave ID = 4bit val
+
+Slave -\/\texorpdfstring{$>$}{>} Master
+
+
+\begin{DoxyEnumerate}
+\item Status poll 001X -\/ SLAVE ID + 1 byte (zapravo poruka o statusu)
+\end{DoxyEnumerate}
+
+SWAM 0000 System\+On Watering Alarm Manual
+
+Master -\/\texorpdfstring{$>$}{>} Slave
+\begin{DoxyEnumerate}
+\item RTC setup Isto kao s prez
+\end{DoxyEnumerate}
+
+011X -\/ SLAVE ID + 3 bytea(\+H,\+M,\+S)
+
+
+\begin{DoxyEnumerate}
+\item Program setup + 5 bytea(\+H,\+M,\+S,sekunde trajanja programa)
+\end{DoxyEnumerate}
+
+101x-\/\+SLAVE ID
+
+
+\begin{DoxyEnumerate}
+\item Biranje baste + 2 bytea
+\end{DoxyEnumerate}
+
+/\+b xx yy 100x-\/ SLAVE ID
+
+
+\begin{DoxyEnumerate}
+\item Control + 1 byte
+\end{DoxyEnumerate}
+
+011x -\/ SLAVE ID kontrolni bajt moze da bude 0x01 za paljenje ili 0x00 za gasenje. ili ista vrednost koja radi kao toggle on -\/ off 
