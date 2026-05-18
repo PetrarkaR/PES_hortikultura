@@ -6,6 +6,7 @@
 #define PinTaster PORTB.F0
 #define PinReset PORTB.F2
 
+#define DEBOUNCE_TICKS 10
 
 #define PinSystemOn PORTA.F2
 #define PinWatering PORTA.F3
@@ -66,6 +67,8 @@ unsigned char Tmp_Hour_X10 = 0x00;
 
 unsigned char Counter = 0x00;
 unsigned char Counter2 = 0x00;
+unsigned char cntManual = 0x00;
+unsigned char cntReset = 0x00;
 
 unsigned char Seconds = 0x00;
 unsigned char Minutes = 0x00;
@@ -119,6 +122,8 @@ void init_variables()
    CommandModified = 0x00;
    Counter = 0x00;
    Counter2 = 0x00;
+   cntManual = 0x00;
+   cntReset = 0x00;
    CallFlag = 0;
    RTCSetupFlag = 0;
    UpdateLCDFlag = 0;
@@ -180,27 +185,27 @@ void DecodeTime()
 
 void ProcessInputs()
 {
-
    // Taster (PORTB.F0) - manual mode
-   TMP_Taster2 = TMP_Taster1;
-   if (PinTaster == 1) TMP_Taster1 = 1;
-   else                TMP_Taster1 = 0;
-   if ((TMP_Taster2 == 0) && (TMP_Taster1 == 1))
+   if (cntManual > 0) cntManual--;
+   if (PinTaster == 0) TMP_Taster1 = 0;
+   if ((cntManual == 0) && (TMP_Taster1 == 0) && (PinTaster == 1))
    {
+      TMP_Taster1 = 1;
+      cntManual = DEBOUNCE_TICKS;
       if (ManualMode == 1) ManualMode = 0;
       else                 ManualMode = 1;
       ManualEvent = 1;     // consumed by main
    }
 
-   // Reset (PORTB.F2) - reset. sta reci.
-   TMP_Reset2 = TMP_Reset1;
-   if (PinReset == 1) {TMP_Reset1 = 1;}
-   else               {TMP_Reset1 = 0;}
-   if ((TMP_Reset2 == 0) && (TMP_Reset1 == 1))
+   // Reset (PORTB.F2) - reset
+   if (cntReset > 0) cntReset--;
+   if (PinReset == 0) TMP_Reset1 = 0;
+   if ((cntReset == 0) && (TMP_Reset1 == 0) && (PinReset == 1))
    {
+      TMP_Reset1 = 1;
+      cntReset = DEBOUNCE_TICKS;
       ResetEvent = 1;      // consumed by main
    }
-
 }
 
 unsigned char buildStatusByte()
