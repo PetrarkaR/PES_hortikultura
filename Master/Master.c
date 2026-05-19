@@ -40,7 +40,7 @@ unsigned char getRequest[20];
 unsigned char dyna[31];
 unsigned long httpCounter = 0;
 
-unsigned char i, brojac, SLAVE_ID, ByteID, ch, Flag1, FlagRTC;
+unsigned char i, brojac, SLAVE_ID, ByteID, ch, Flag1, FlagRTC, FlagPoll;
 unsigned char seconds, minutes, hours;
 unsigned char buffer[150];
 unsigned char no_ch;
@@ -86,9 +86,10 @@ void init_variables() {
   ByteID = 0x00;
   Flag1 = 0x00;
   FlagRTC = 0x00;
+  FlagPoll = 0x00;
   updateLCDFlag = 0x00;
   btnCnt = 0x00;
-  cntDisp=0x00;
+  cntDisp = 0x00;
   // cnt = 0x00;
   SLAVE_ID = 0x0F;
   for (i = 0; i < 16; i++) {
@@ -96,14 +97,13 @@ void init_variables() {
     Hour[i] = 0x00;
     Min[i] = 0x00;
     Sec[i] = 0x00;
-    Status1[i]=0x00;
+    Status1[i] = 0x00;
     Program[i].startHour = 0x00;
     Program[i].startMin = 0x00;
     Program[i].durationsH = 0x00;
     Program[i].durationsL = 0x00;
     Garden[i].modeID = 0x00;
     Garden[i].gardenSend = 0x00;
-
   }
 }
 //===========INIT REGISTERS=====================================
@@ -154,7 +154,7 @@ void init() {
   Lcd_Init();
   Lcd_Cmd(_LCD_CLEAR);
   Lcd_Cmd(_LCD_CURSOR_OFF);
-  //UpdateLCD();
+  // UpdateLCD();
 }
 //=========================ETHERNET===================================================
 unsigned int putConstString(const char *s) {
@@ -201,18 +201,18 @@ void formBuffer() {
       } else if (StatusByte & STATUS_WATER_BIT) {
         if (StatusByte & STATUS_MANUAL_BIT) {
           appendBuffer("Watering(Manual_Mode)\n\n");
-            if (StatusByte & STATUS_ALARM_BIT) {
-               appendBuffer("ALARM ON\n\n");
-               }
+          if (StatusByte & STATUS_ALARM_BIT) {
+            appendBuffer("ALARM ON\n\n");
+          }
         } else {
           appendBuffer("Watering(Automatic_Mode)\n\n");
-            if (StatusByte & STATUS_ALARM_BIT) {
-        appendBuffer("ALARM ON\n\n");
-      }
+          if (StatusByte & STATUS_ALARM_BIT) {
+            appendBuffer("ALARM ON\n\n");
+          }
         }
       }
 
-       else {
+      else {
         appendBuffer("IDLE\n\n");
       }
     }
@@ -244,11 +244,15 @@ unsigned int SPI_Ethernet_UserTCP(unsigned char *remoteHost,
   if (memcmp(getRequest, httpMethod, 5)) {
     return 0;
   }
+  if (getRequest[5] == 's') { // POLL
+    FlagPoll = 1;
+  }
   if (getRequest[5] == 'r') { // RTC
     // RTC setup
     FlagRTC = 0x01; // setovanje Flega za RTC
-    // ASCII konverzija koja se vrsi pri dobijanju podatka 0=>030, ako dobijemo
-    // broj 8 => 0x38 propustimo samo donji nibble maskom 0x0F i dobijemo 0x08
+    // ASCII konverzija koja se vrsi pri dobijanju podatka 0=>030, ako
+    // dobijemo broj 8 => 0x38 propustimo samo donji nibble maskom 0x0F i
+    // dobijemo 0x08
     hours = (getRequest[6] & 0x0F) * 10 + (getRequest[7] & 0x0F);
     minutes = (getRequest[8] & 0x0F) * 10 + (getRequest[9] & 0x0F);
     seconds = (getRequest[10] & 0x0F) * 10 + (getRequest[11] & 0x0F);
@@ -314,7 +318,7 @@ void interrupt() {
       } else {
         cntDisp++;
       }
-    } else if(btnCnt>0) {
+    } else if (btnCnt > 0) {
       btnCnt--;
     }
     if ((ButtonDec == 1) && btnCnt == 0) {
@@ -325,7 +329,7 @@ void interrupt() {
       } else {
         cntDisp--;
       }
-    } else if(btnCnt>0) {
+    } else if (btnCnt > 0) {
       btnCnt--;
     }
 
@@ -382,43 +386,41 @@ void lcdDisplayBit(unsigned char mask) {
   for (i = 0; i <= 16; i++) {
     if ((Status1[i] & mask) == mask) {
       Lcd_Chr(2, 16 - i, '1');
-    }else{
+    } else {
       Lcd_Chr(2, 16 - i, '0');
-      }
+    }
   }
 }
 void lcdDisplayProgram(struct Mode Program, unsigned char ID) {
   // Lcd_Cmd(_LCD_CLEAR);
-  Lcd_Out(1, 1, "Prog: ");
+  Lcd_Out(1, 1, "Prog:");
   lcdDisplayUchar(1, 6, ID);
-  Lcd_Out(1, 9, "   ");
-  Lcd_Out(1, 12, "Totl");
+  Lcd_Out(1, 9, "    ");
+  Lcd_Out(1, 13, "Totl"); // prvi red
+  //=====drugi red=====
   lcdDisplayUchar(2, 1, Program.startHour);
   Lcd_Chr(2, 3, ':');
   lcdDisplayUchar(2, 4, Program.startMin);
   Lcd_Out(2, 6, "  ");
   Lcd_Chr(2, 8, '/');
-  lcdDisplayUchar(2, 10, Program.durationsH);
-  lcdDisplayUchar(2, 13, Program.durationsL);
+  lcdDisplayUchar(2, 9, Program.durationsH);
+  lcdDisplayUchar(2, 11, Program.durationsL);
+  Lcd_Out(2, 13, "   ");
 }
 void updateLCD() {
   if (cntDisp <= 16) {
     lcdDisplayProgram(Program[cntDisp], cntDisp);
   } else if (cntDisp == 17) { // System
-    Lcd_Out(1, 1, "Operation");
-    Lcd_Out(1, 10, "      ");
+    Lcd_Out(1, 1, "Operation       ");
     lcdDisplayBit(STATUS_SYSTEM_BIT);
   } else if (cntDisp == 18) { // Watering
-    Lcd_Out(1, 1, "Watering");
-    Lcd_Out(1, 9, "       ");
+    Lcd_Out(1, 1, "Watering        ");
     lcdDisplayBit(STATUS_WATER_BIT);
   } else if (cntDisp == 19) { // Alarm
-    Lcd_Out(1, 1, "Alarm");
-    Lcd_Out(1, 6, "         ");
+    Lcd_Out(1, 1, "Alarm           ");
     lcdDisplayBit(STATUS_ALARM_BIT);
   } else if (cntDisp == 20) { // Manual
-    Lcd_Out(1, 1, "Manual");
-    Lcd_Out(1, 7, "         ");
+    Lcd_Out(1, 1, "Manual          ");
     lcdDisplayBit(STATUS_MANUAL_BIT);
   }
 }
@@ -429,24 +431,19 @@ void main(void) {
 
   while (1) {
     SPI_Ethernet_doPacket();
-    //updateLCD();
-
-    if (Flag1 == 0x01) {
+    if (Flag1 == 0x01) { // 125ms
       Flag1 = 0x00;
-      SLAVE_ID++;
-      if (updateLCDFlag == 1) {
-        updateLCDFlag = 0;
-        //Lcd_Cmd(_LCD_CLEAR);
-        updateLCD();
+      SLAVE_ID++; // sledeca basta
+      if (FlagPoll) {
+        FlagPoll = 0x00;
+        DR = 1;
+        transmit(STATUS_CODE | SLAVE_ID); // pitamo za status slejva
+        DR = 0;
+        ByteID = BYTE_ID_CMD_BYTE; // ocekujemo cmd_byte
       }
-      DR = 1;
-      transmit(STATUS_CODE | SLAVE_ID); // pitamo za status slejva
-      DR = 0;
-      ByteID = BYTE_ID_CMD_BYTE; // ocekujemo cmd_byte
-      if (SLAVE_ID == 0x10) {    // svi slejovi pollovani
+      if (SLAVE_ID == 0x10) { // svi slejovi pollovani
         SLAVE_ID = 0x00;
         PORTA.F4 = 1;
-       // updateLCDFlag=1;
       }
       if (Garden[SLAVE_ID].gardenSend == 0x01) {
         DR = 1;
@@ -474,7 +471,10 @@ void main(void) {
       FlagRTC = 0x00;
       ByteID = BYTE_ID_CMD_BYTE;
     }
-
+    if (updateLCDFlag == 1) {
+      updateLCDFlag = 0;
+      updateLCD();
+    }
     // while(1)
   }
 }
