@@ -1,0 +1,93 @@
+\documentclass[11pt]{report}
+\pdfmapfile{+lm.map}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{minted}   
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{array}
+\usepackage{hyperref} 
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage{xcolor}
+
+\tolerance=1
+\emergencystretch=\maxdimen
+\hyphenpenalty=10000
+\hbadness=10000
+
+\sloppy
+
+\floatname{algorithm}{Algoritam}
+\captionsetup[figure]{name=Slika}
+\captionsetup[table]{name=Tabela}
+
+\renewcommand{\contentsname}{Sadržaj}
+\renewcommand{\bibname}{Literatura}
+
+\titleformat{\chapter}[block] {\normalfont\huge\bfseries}{\thechapter.}{1em}{\huge} 
+\titlespacing*{\chapter}{0pt}{100pt}{20pt} 
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+\begin{document}
+\pagenumbering{roman}
+\begin{titlepage}
+    \begin{table}[h]
+        \centering
+        \begin{tabular}{ccc}
+            \includegraphics[width=0.2\textwidth]{images/uni.png} & 
+            \begin{tabular}{c}
+                    \Large \textsc{Univerzitet u Nišu} \\
+                    \Large \textsc{Elektronski fakultet} \\ \\ \\ \\ \\ \\
+            \end{tabular} &
+            \includegraphics[width=0.2\textwidth]{images/elfak.png}\\
+        \end{tabular}
+    \end{table}
+
+    \vspace{4cm}
+    
+    \begin{center}
+        \LARGE{\textbf{\textsc{Studentska praksa}}} \\
+        \vspace{0.5cm}
+        \large {\textbf{Dnevnik rada} \\ Studijski program: Elektrotehnika i računarstvo }
+    \end{center}
+    
+    \vfill
+
+    \begin{center}
+        \large \textbf{Student:}\\[0.2cm]
+        Petar Ristić, br. indeksa 18881
+    \end{center}
+
+    \vspace{1cm}
+
+    \begin{center}
+        \large {Niš, septembar 2025. godine}
+    \end{center}
+\end{titlepage}
+
+
+
+
+\tableofcontents
+\pagenumbering{arabic}
+\input{chapters/introduction}
+
+
+\addcontentsline{toc}{chapter}{Literatura}
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+\end{document}
