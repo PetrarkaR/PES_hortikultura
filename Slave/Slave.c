@@ -87,6 +87,9 @@ void ProcessInputs();
 void IncrementTime();
 void init();
 void UpdateLCD();
+void LcdOut2(unsigned char row, unsigned char col, unsigned char value);
+void LcdOut3(unsigned char row, unsigned char col, unsigned char value);
+void LcdOutDuration(unsigned char row, unsigned char col, unsigned int seconds);
 
 // Lcd pinout settings
 sbit LCD_RS at RC0_bit;
@@ -409,8 +412,67 @@ void ConvertTime(unsigned char ch)
    }
 }
 
+void LcdOut2(unsigned char row, unsigned char col, unsigned char value)
+{
+   unsigned char tens;
+
+   tens = 0;
+   while (value > 9)
+   {
+      value -= 10;
+      tens++;
+   }
+
+   Lcd_Chr(row, col,     tens  + '0');
+   Lcd_Chr(row, col + 1, value + '0');
+}
+
+void LcdOut3(unsigned char row, unsigned char col, unsigned char value)
+{
+   unsigned char hundreds;
+   unsigned char tens;
+
+   hundreds = 0;
+   tens = 0;
+
+   while (value > 99)
+   {
+      value -= 100;
+      hundreds++;
+   }
+   while (value > 9)
+   {
+      value -= 10;
+      tens++;
+   }
+
+   Lcd_Chr(row, col,     hundreds + '0');
+   Lcd_Chr(row, col + 1, tens     + '0');
+   Lcd_Chr(row, col + 2, value    + '0');
+}
+
+void LcdOutDuration(unsigned char row, unsigned char col, unsigned int seconds)
+{
+   unsigned char minutes;
+
+   minutes = 0;
+   while ((seconds >= 60) && (minutes < 99))
+   {
+      seconds -= 60;
+      minutes++;
+   }
+   if (seconds >= 60)
+   {
+      seconds = 59;
+   }
+
+   LcdOut2(row, col, minutes);
+   Lcd_Chr(row, col + 2, ':');
+   LcdOut2(row, col + 3, (unsigned char)seconds);
+}
+
 void interrupt()
-{  
+{
    GARDEN_ID = PORTD & 0x0F;
    if ((PIE1.TMR1IE) && (PIR1.TMR1IF))
    {
@@ -508,9 +570,6 @@ void interrupt()
 
 void UpdateLCD()
 {
-   unsigned char buf[4];
-
-   
    Lcd_Out(1, 1, "T ");
    Lcd_Chr(1, 3,  Hour_X10 + '0');
    Lcd_Chr(1, 4,  Hour_X1  + '0');
@@ -520,19 +579,17 @@ void UpdateLCD()
    Lcd_Chr(1, 8,  ':');
    Lcd_Chr(1, 9,  Sec_X10  + '0');
    Lcd_Chr(1, 10, Sec_X1   + '0');
+   Lcd_Chr(1, 11, ' ');
    Lcd_Out(1, 12, "F:");
-   //ByteToStr(FlowValue, buf);
-   Lcd_Out(1, 14, FlowValue);
+   LcdOut3(1, 14, FlowValue);
 
-   // Row 2: S:X W:X A:X M:X
-   Lcd_Out(2, 1, "S:");
-   if (PinSystemOn) Lcd_Chr(2, 3,  '1'); else Lcd_Chr(2, 3,  '0');
-   Lcd_Out(2, 5, "W:");
-   if (PinWatering) Lcd_Chr(2, 7,  '1'); else Lcd_Chr(2, 7,  '0');
-   Lcd_Out(2, 9, "A:");
-   if (PinAlarm)    Lcd_Chr(2, 11, '1'); else Lcd_Chr(2, 11, '0');
-   Lcd_Out(2, 13, "M:");
-   if (ManualMode)  Lcd_Chr(2, 15, '1'); else Lcd_Chr(2, 15, '0');
+   Lcd_Out(2, 1, "SWAM:");
+   if (PinSystemOn) Lcd_Chr(2, 6, '1'); else Lcd_Chr(2, 6, '0');
+   if (PinWatering) Lcd_Chr(2, 7, '1'); else Lcd_Chr(2, 7, '0');
+   if (PinAlarm)    Lcd_Chr(2, 8, '1'); else Lcd_Chr(2, 8, '0');
+   if (ManualMode)  Lcd_Chr(2, 9, '1'); else Lcd_Chr(2, 9, '0');
+   Lcd_Out(2, 10, " R");
+   LcdOutDuration(2, 12, WateringSec);
 }
 
 void init()
