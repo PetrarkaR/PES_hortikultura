@@ -24,7 +24,8 @@ unsigned char time_left_low      = 0x00;
 unsigned char ProgStartHour      = 0x00;   
 unsigned char ProgStartMin       = 0x00;
 unsigned int  WateringSec        = 0;      
-
+unsigned char Tmp_ProgStartHour      = 0x00;
+unsigned char Tmp_ProgStartMin       = 0x00;
 bit ProgramSetupFlag;
 
 // ID broj rampe
@@ -409,7 +410,8 @@ void ConvertTime(unsigned char ch)
 }
 
 void interrupt()
-{
+{  
+   GARDEN_ID = PORTD & 0x0F;
    if ((PIE1.TMR1IE) && (PIR1.TMR1IF))
    {
       // prekid tajmera na svakih 100ms
@@ -439,33 +441,23 @@ void interrupt()
    if ((PIE1.RCIE) && (PIR1.RCIF))
    {
       ch = RCREG;
+      
       if (ByteID == 0x00)
       {
-         if ((ch & 0x0F) == GARDEN_ID)
-         {
-            // adresa slejva se poklapa
-            Command = ch;
-            if ((ch & 0xE0) == 0x20)
+            if(((ch & 0x0F)== GARDEN_ID) && ((ch&0xE0)==0xA0))
             {
-               // primljeni bajt je bajt prozivke
-               ByteID = 0x00;
-               CallFlag = 1;
+               Command=ch;
+               ByteID = 0x08;
+               Counter2=4;
             }
-            else if ((ch & 0xE0) == 0x60)
-            {
-               // primljeni bajt je komanda za
-               // podesavanje sata realnog vremena
+            else if((ch&0xE0)==0x60){
                ByteID = 0x03;
                Counter2 = 3;
-               // 300 ms je vreme tokom kojeg
-               // trebaju da stignu preostali bajtovi
             }
-            else if ((ch & 0xE0) == 0xA0)
-               {
-                  ByteID = 0x08;
-                  Counter2 = 6;
-               }
-         }
+            else if(((ch&0x0F)==GARDEN_ID)&& ((ch&0xE0)==0x20)){
+               Command= ch;
+               ByteID=0x00;
+            }
       }
       else if (ByteID == 0x03)          
       {
@@ -529,8 +521,8 @@ void UpdateLCD()
    Lcd_Chr(1, 9,  Sec_X10  + '0');
    Lcd_Chr(1, 10, Sec_X1   + '0');
    Lcd_Out(1, 12, "F:");
-   ByteToStr(FlowValue, buf);    
-   Lcd_Out(1, 14, buf);
+   //ByteToStr(FlowValue, buf);
+   Lcd_Out(1, 14, FlowValue);
 
    // Row 2: S:X W:X A:X M:X
    Lcd_Out(2, 1, "S:");

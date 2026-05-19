@@ -1,21 +1,20 @@
-#line 1 "I:/Predmeti/ProjektovanjeElektonskihSistema/Studenti/08_MarjanDjordjevic/Slejv/Program/Slave.c"
-#line 15 "I:/Predmeti/ProjektovanjeElektonskihSistema/Studenti/08_MarjanDjordjevic/Slejv/Program/Slave.c"
-unsigned char RAMP_ID = 0x00;
-bit Operation;
-bit Operation2;
+#line 1 "C:/Users/Student 1/Documents/PES/Archive/Slave/Slave.c"
+#line 1 "c:/users/student 1/documents/pes/archive/slave/../commons/config.h"
+#line 19 "C:/Users/Student 1/Documents/PES/Archive/Slave/Slave.c"
+unsigned char GARDEN_ID = 0x00;
+unsigned char Tmp_time_left_high = 0x00;
+unsigned char Tmp_time_left_low = 0x00;
+unsigned char time_left_high = 0x00;
+unsigned char time_left_low = 0x00;
+unsigned char ProgStartHour = 0x00;
+unsigned char ProgStartMin = 0x00;
+unsigned int WateringSec = 0;
+unsigned char Tmp_ProgStartHour = 0x00;
+unsigned char Tmp_ProgStartMin = 0x00;
+bit ProgramSetupFlag;
 
-bit RampOpen;
-bit RampOpen2;
 
-bit Event;
-bit EXTRampOpen;
-bit Error;
-bit Sensor;
-
-unsigned char Category = 0x00;
-
-
-unsigned char BytesToReceive = 0x00;
+unsigned char ByteID = 0x00;
 
 unsigned char ch = 0x00;
 
@@ -31,15 +30,12 @@ bit UpdateLCDFlag;
 
 bit TMP_Taster2;
 bit TMP_Taster1;
-
-bit TMP_Sensor2;
-bit TMP_Sensor1;
-
-bit TMP_Error2;
-bit TMP_Error1;
-
-bit TMP_EXTRampOpen2;
-bit TMP_EXTRampOpen1;
+bit TMP_Reset1;
+bit TMP_Reset2;
+bit ManualMode;
+bit ResetEvent;
+bit ManualEvent;
+unsigned char program;
 
 unsigned char Sec_X1 = 0x00;
 unsigned char Sec_X10 = 0x00;
@@ -57,6 +53,8 @@ unsigned char Tmp_Hour_X10 = 0x00;
 
 unsigned char Counter = 0x00;
 unsigned char Counter2 = 0x00;
+unsigned char cntManual = 0x00;
+unsigned char cntReset = 0x00;
 
 unsigned char Seconds = 0x00;
 unsigned char Minutes = 0x00;
@@ -64,6 +62,10 @@ unsigned char Hours = 0x00;
 
 unsigned char X1;
 unsigned char X10;
+
+unsigned char FlowValue = 0x00;
+unsigned char FlowMin = 20;
+unsigned char FlowMax = 60;
 
 void DecodeTime();
 void ProcessInputs();
@@ -87,37 +89,27 @@ sbit LCD_D6_Direction at TRISD6_bit;
 sbit LCD_D5_Direction at TRISD5_bit;
 sbit LCD_D4_Direction at TRISD4_bit;
 
+unsigned char ReadADC();
+
 void init_variables()
 {
 
- RAMP_ID = 0x00;
- Category = 0x00;
- Operation = 0;
- Event = 0;
- RampOpen = 0;
- EXTRampOpen = 0;
- Error = 0;
- Sensor = 0;
- Operation2 = 0;
- RampOpen2 = 0;
+ GARDEN_ID = 0x00;
 
  TMP_Taster2 = 0;
  TMP_Taster1 = 0;
 
- TMP_Sensor2 = 0;
- TMP_Sensor1 = 0;
+ TMP_Reset2 = 0;
+ TMP_Reset1 = 0;
 
- TMP_Error2 = 0;
- TMP_Error1 = 0;
-
- TMP_EXTRampOpen2 = 0;
- TMP_EXTRampOpen1 = 0;
- BytesToReceive = 0x00;
+ ByteID = 0x00;
  ch = 0x00;
  Command = 0x00;
  CommandModified = 0x00;
  Counter = 0x00;
  Counter2 = 0x00;
+ cntManual = 0x00;
+ cntReset = 0x00;
  CallFlag = 0;
  RTCSetupFlag = 0;
  UpdateLCDFlag = 0;
@@ -137,7 +129,30 @@ void init_variables()
  Seconds = 0x00;
  Minutes = 0x00;
  Hours = 0x00;
+
+
+ time_left_high = 0x00;
+ time_left_low = 0x00;
+ WateringSec = 0;
+ ManualMode = 0;
+ ManualEvent = 0;
+ ResetEvent = 0;
+ ProgramSetupFlag = 0;
+ ProgStartHour = 0x00;
+ ProgStartMin = 0x00;
+  PORTA.F2  = 1;
+  PORTA.F3  = 0;
+  PORTA.F4  = 0;
 }
+
+unsigned char ReadADC() {
+ ADCON0.GO_DONE = 1;
+ while (ADCON0.GO_DONE)
+ ;
+ return ADRESH;
+}
+
+
 
 void transmit(unsigned char DATA8b)
 {
@@ -156,55 +171,46 @@ void DecodeTime()
 
 void ProcessInputs()
 {
- TMP_Taster2 = TMP_Taster1;
- if ( PORTB.F0  == 1)
- TMP_Taster1 = 1;
- else
- TMP_Taster1 = 0;
- if ((TMP_Taster2 == 1) && (TMP_Taster1 == 1))
+
+ if (cntManual > 0) cntManual--;
+ if ( PORTB.F0  == 0) TMP_Taster1 = 0;
+ if ((cntManual == 0) && (TMP_Taster1 == 0) && ( PORTB.F0  == 1))
  {
- Event = 1;
-  PORTA.F4  = 1;
+ TMP_Taster1 = 1;
+ cntManual =  10 ;
+ if (ManualMode == 1) ManualMode = 0;
+ else ManualMode = 1;
+ ManualEvent = 1;
  }
 
- TMP_Sensor2 = TMP_Sensor1;
- if ( PORTB.F1  == 1)
- TMP_Sensor1 = 1;
- else
- TMP_Sensor1 = 0;
- if ((TMP_Sensor2 == 1) && (TMP_Sensor1 == 1))
- RampOpen = 0;
 
- TMP_Error2 = TMP_Error1;
- if ( PORTB.F4  == 1)
- TMP_Error1 = 1;
- else
- TMP_Error1 = 0;
- if ((TMP_Error2 == 1) && (TMP_Error1 == 1))
- Error = 1;
- else if ((TMP_Error2 == 0) && (TMP_Error1 == 0))
- Error = 0;
+ if (cntReset > 0) cntReset--;
+ if ( PORTB.F2  == 0) TMP_Reset1 = 0;
+ if ((cntReset == 0) && (TMP_Reset1 == 0) && ( PORTB.F2  == 1))
+ {
+ TMP_Reset1 = 1;
+ cntReset =  10 ;
+ ResetEvent = 1;
+ }
+}
 
- TMP_EXTRampOpen2 = TMP_EXTRampOpen1;
- if ( PORTB.F5  == 1)
- TMP_EXTRampOpen1 = 1;
- else
- TMP_EXTRampOpen1 = 0;
+unsigned char buildStatusByte()
+{
+ unsigned char status = 0x00;
+ if ( PORTA.F2 ) status |=  0x80 ;
+ if ( PORTA.F3 ) status |=  0x40 ;
+ if ( PORTA.F4 ) status |=  0x20 ;
+ if (ManualMode) status |=  0x10 ;
+ return status;
+}
 
- if ((TMP_EXTRampOpen2 == 1) && (TMP_EXTRampOpen1 == 1))
- EXTRampOpen = 1;
- else if ((TMP_EXTRampOpen2 == 0) && (TMP_EXTRampOpen1 == 0))
- EXTRampOpen = 0;
 
- if (PORTD.F2 == 1)
- if (PORTD.F3 == 1)
- Category = 0x03;
- else
- Category = 0x02;
- else if (PORTD.F3 == 1)
- Category = 0x01;
- else
- Category = 0x00;
+unsigned char toBcd(unsigned char val)
+{
+ unsigned char tens;
+ tens = 0;
+ while (val > 9) { val -= 10; tens++; }
+ return (tens << 4) | val;
 }
 
 void main()
@@ -218,73 +224,89 @@ void main()
  while (1)
  {
 
- RampOpen2 = RampOpen | EXTRampOpen;
- if (Error == 1)
- Operation2 = 0;
+
+ if (ResetEvent == 1)
+ {
+ ResetEvent = 0;
+  PORTA.F3  = 0;
+  PORTA.F2  = 1;
+  PORTA.F4  = 0;
+ ManualMode = 0;
+ ManualEvent = 0;
+ WateringSec = 0;
+ }
+
+
+ if (ManualEvent == 1)
+ {
+ ManualEvent = 0;
+ if (ManualMode == 1)
+ {
+
+ WateringSec = 180;
+  PORTA.F3  = 1;
+  PORTA.F2  = 1;
+ }
  else
- Operation2 = Operation;
-  PORTA.F2  = Operation2;
-  PORTA.F3  = RampOpen2;
+ {
+
+ WateringSec = 0;
+ }
+ }
+
  if (UpdateLCDFlag == 1)
  {
  UpdateLCDFlag = 0;
+
+
+ if (( PORTA.F3  == 0) &&
+ (Seconds == 0x00) &&
+ (Hours == ProgStartHour) &&
+ (Minutes == ProgStartMin))
+ {
+ WateringSec = ((unsigned int)time_left_high << 8) | time_left_low;
+  PORTA.F3  = 1;
+  PORTA.F2  = 1;
+ }
+
+
+ if ( PORTA.F3  == 1)
+ {
+ if (WateringSec > 0) WateringSec--;
+ if (WateringSec == 0)
+ {
+  PORTA.F3  = 0;
+  PORTA.F2  = 1;
+ ManualMode = 0;
+ }
+ }
+
+ FlowValue = ReadADC();
+ if ( PORTA.F3  == 1)
+ {
+ if ((FlowValue < FlowMin) || (FlowValue > FlowMax))
+  PORTA.F4  = 1;
+ else
+  PORTA.F4  = 0;
+ }
+ else
+ {
+  PORTA.F4  = 0;
+ }
  UpdateLCD();
  }
 
- if ((BytesToReceive > 0) && (Counter2 == 0))
+ if ((ByteID > 0) && (Counter2 == 0))
  {
- BytesToReceive = 0;
+ ByteID = 0;
  }
  if (CallFlag == 1)
  {
- if ((Command & 0x10) == 0x10)
- Operation = 1;
- else
- Operation = 0;
- if (Error == 1)
- {
 
   PORTC.F5  = 1;
- if (Operation == 0x01)
- CommandModified = 0b00010000 | RAMP_ID;
- else
- CommandModified = 0b00000000 | RAMP_ID;
- transmit(CommandModified);
+ transmit( 0x20  | GARDEN_ID);
+ transmit(buildStatusByte());
   PORTC.F5  = 0;
- }
- else if (Event == 0)
- {
-
-
-  PORTC.F5  = 1;
- if (Operation == 1)
- CommandModified = 0b00110000 | RAMP_ID;
- else
- CommandModified = 0b00100000 | RAMP_ID;
- transmit(CommandModified);
-  PORTC.F5  = 0;
- }
- else
- {
-
-
-
-
- if (Operation == 1)
- {
-  PORTC.F5  = 1;
- CommandModified = 0b01010000 | RAMP_ID;
- transmit(CommandModified);
- transmit(Seconds);
- transmit(Minutes);
- transmit(Hours);
- transmit(Category);
-  PORTC.F5  = 0;
- Event = 0;
-  PORTA.F4  = 0;
- RampOpen = 1;
- }
- }
  CallFlag = 0;
  }
  if (RTCSetupFlag == 1)
@@ -296,12 +318,22 @@ void main()
  Hour_X1 = Tmp_Hour_X1;
  Hour_X10 = Tmp_Hour_X10;
   PORTC.F5  = 1;
- if (Operation == 1)
- CommandModified = 0b01110000 | RAMP_ID;
- else
- CommandModified = 0b01100000 | RAMP_ID;
- transmit(CommandModified);
+ transmit( 0x20  | GARDEN_ID);
+ transmit(buildStatusByte());
  RTCSetupFlag = 0;
+  PORTC.F5  = 0;
+ }
+ if (ProgramSetupFlag == 1)
+ {
+ ProgStartHour = toBcd(Tmp_ProgStartHour);
+ ProgStartMin = toBcd(Tmp_ProgStartMin);
+ time_left_high = Tmp_time_left_high;
+ time_left_low = Tmp_time_left_low;
+
+  PORTC.F5  = 1;
+ transmit( 0x20  | GARDEN_ID);
+ transmit(buildStatusByte());
+ ProgramSetupFlag = 0;
   PORTC.F5  = 0;
  }
  }
@@ -364,6 +396,7 @@ void ConvertTime(unsigned char ch)
 
 void interrupt()
 {
+ GARDEN_ID = PORTD & 0x0F;
  if ((PIE1.TMR1IE) && (PIR1.TMR1IF))
  {
 
@@ -393,85 +426,100 @@ void interrupt()
  if ((PIE1.RCIE) && (PIR1.RCIF))
  {
  ch = RCREG;
- if (BytesToReceive == 0x00)
- {
- if ((ch & 0x0F) == RAMP_ID)
- {
 
- Command = ch;
- if ((ch & 0xE0) == 0x20)
+ if (ByteID == 0x00)
  {
-
- BytesToReceive = 0x00;
- CallFlag = 1;
+ if(((ch & 0x0F)== GARDEN_ID) && ((ch&0xE0)==0xA0))
+ {
+ Command=ch;
+ ByteID = 0x08;
+ Counter2=4;
  }
- else if ((ch & 0xE0) == 0x60)
- {
-
-
- BytesToReceive = 0x03;
+ else if((ch&0xE0)==0x60){
+ ByteID = 0x03;
  Counter2 = 3;
-
-
+ }
+ else if(((ch&0x0F)==GARDEN_ID)&& ((ch&0xE0)==0x20)){
+ Command= ch;
+ ByteID=0x00;
  }
  }
- }
- else if (BytesToReceive == 0x03)
+ else if (ByteID == 0x03)
  {
- BytesToReceive = 0x02;
- ch = ch - 0x30;
- if (ch > 59)
- ch = 59;
- ConvertTime(ch);
- Tmp_Sec_X1 = X1;
- Tmp_Sec_X10 = X10;
- }
- else if (BytesToReceive == 0x02)
- {
- BytesToReceive = 0x01;
- ch = ch - 0x30;
- if (ch > 59)
- ch = 59;
- ConvertTime(ch);
- Tmp_Min_X1 = X1;
- Tmp_Min_X10 = X10;
- }
- else if (BytesToReceive == 0x01)
- {
- BytesToReceive = 0x00;
- ch = ch - 0x30;
- if (ch > 23)
- ch = 23;
  ConvertTime(ch);
  Tmp_Hour_X1 = X1;
  Tmp_Hour_X10 = X10;
+ ByteID = 0x02;
+ }
+ else if (ByteID == 0x02)
+ {
+ ConvertTime(ch);
+ Tmp_Min_X1 = X1;
+ Tmp_Min_X10 = X10;
+ ByteID = 0x01;
+ }
+ else if (ByteID == 0x01)
+ {
+ ConvertTime(ch);
+ Tmp_Sec_X1 = X1;
+ Tmp_Sec_X10 = X10;
+ ByteID = 0x00;
  RTCSetupFlag = 1;
+ }
+
+ else if (ByteID == 0x08)
+ {
+ Tmp_ProgStartHour = ch;
+ ByteID = 0x07;
+ }
+ else if (ByteID == 0x07)
+ {
+ Tmp_ProgStartMin = ch;
+ ByteID = 0x06;
+ }
+ else if (ByteID == 0x06)
+ {
+ Tmp_time_left_high = ch;
+ ByteID = 0x05;
+ }
+ else if (ByteID == 0x05)
+ {
+ Tmp_time_left_low = ch;
+ ByteID = 0x00;
+ ProgramSetupFlag = 1;
  }
  }
 }
 
 void UpdateLCD()
 {
- Lcd_Out(1, 1, "Time:");
- Lcd_Chr(1, 6, (Hour_X10 + 0x30));
- Lcd_Chr(1, 7, (Hour_X1 + 0x30));
+ unsigned char buf[4];
+
+
+ Lcd_Out(1, 1, "T ");
+ Lcd_Chr(1, 3, Hour_X10 + '0');
+ Lcd_Chr(1, 4, Hour_X1 + '0');
+ Lcd_Chr(1, 5, ':');
+ Lcd_Chr(1, 6, Min_X10 + '0');
+ Lcd_Chr(1, 7, Min_X1 + '0');
  Lcd_Chr(1, 8, ':');
- Lcd_Chr(1, 9, (Min_X10 + 0x30));
- Lcd_Chr(1, 10, (Min_X1 + 0x30));
- Lcd_Chr(1, 11, ':');
- Lcd_Chr(1, 12, (Sec_X10 + 0x30));
- Lcd_Chr(1, 13, (Sec_X1 + 0x30));
- if (Operation2 == 0x01)
- Lcd_Out(2, 1, "Operating");
- else if (Error == 0x01)
- Lcd_Out(2, 1, "Error    ");
- else
- Lcd_Out(2, 1, "         ");
- if (RampOpen2 == 0x01)
- Lcd_Out(2, 11, "Opened");
- else
- Lcd_Out(2, 11, "Closed");
+ Lcd_Chr(1, 9, Sec_X10 + '0');
+ Lcd_Chr(1, 10, Sec_X1 + '0');
+ Lcd_Out(1, 12, "F:");
+
+ Lcd_Out(1, 14, FlowValue);
+
+
+ Lcd_Out(2, 1, "S:");
+ if ( PORTA.F2 ) Lcd_Chr(2, 3, '1'); else Lcd_Chr(2, 3, '0');
+ Lcd_Out(2, 5, "W:");
+ if ( PORTA.F3 ) Lcd_Chr(2, 7, '1'); else Lcd_Chr(2, 7, '0');
+ Lcd_Out(2, 9, "A:");
+ if ( PORTA.F4 ) Lcd_Chr(2, 11, '1'); else Lcd_Chr(2, 11, '0');
+ Lcd_Out(2, 13, "M:");
+ if (ManualMode) Lcd_Chr(2, 15, '1'); else Lcd_Chr(2, 15, '0');
 }
+
 void init()
 {
 
@@ -487,8 +535,9 @@ void init()
  PORTB = 0x00;
  PORTC = 0x00;
 
- ADCON0 = 0x00;
- ADCON1 = 0b00000110;
+ ADCON1 = 0b00001110;
+ ADCON0 = 0b10000001;
+
 
  INTCON = 0b11000000;
  PIE1 = 0b00000000;

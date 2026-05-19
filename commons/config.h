@@ -16,7 +16,7 @@
 #define RTC_BYTES 3 // DONE
 #define MODE_CODE 0xA0
 #define MODE_BYTES 5
-
+#define RTC_BROADCAST 0x7F
 // Slave -> Master status response byte.
 #define STATUS_CODE 0x20
 

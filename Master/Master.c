@@ -2,16 +2,15 @@
 #define SPI_Ethernet_HALFDUPLEX 0
 #define SPI_Ethernet_FULLDUPLEX 1
 #define DR PORTA.F5
-#define ButtonProgram PORTB.F0
-#define ButtonStatus PORTB.F1
+#define ButtonInc PORTB.F0
+#define ButtonDec PORTB.F1
 #include "../commons/config.h"
-
+//==========GLOBAL VARIABLES============================
 typedef struct {
   unsigned canCloseTCP : 1; // socket close flagg
   unsigned isBroadcast : 1;
 } TEthPktFlags;
 struct Mode {
-  // unsigned char ID;
   unsigned char startHour;
   unsigned char startMin;
   unsigned char durationsH;
@@ -21,7 +20,8 @@ struct Garden {
   unsigned char modeID;
   unsigned char gardenSend;
 };
-
+// svi delovi structa su iste velicine, tako da nemamo padding i podaci bi
+// trebalo da se dobavljaju brze, posto su jedan do drugog
 const unsigned char httpHeader[] = "HTTP/1.1 200 OK\nContent-type: ";
 const unsigned char httpMimeTypeHTML[] = "text/html\n\n";
 const unsigned char httpMimeTypeScript[] = "text/plain\n\n";
@@ -40,7 +40,7 @@ unsigned char getRequest[20];
 unsigned char dyna[31];
 unsigned long httpCounter = 0;
 
-unsigned char i, brojac, SLAVE_ID, ByteID, ch, Flag1, Flag2, Flag3;
+unsigned char i, brojac, SLAVE_ID, ByteID, ch, Flag1, FlagRTC;
 unsigned char seconds, minutes, hours;
 unsigned char buffer[150];
 unsigned char no_ch;
@@ -51,8 +51,13 @@ unsigned char Hour[16]; /*Podaci o vremenu  */
 unsigned char Min[16];
 unsigned char Sec[16];
 unsigned char Status1[16]; // SWAM
+unsigned char updateLCDFlag;
 unsigned char btnCnt;
-
+unsigned char cntDisp;
+unsigned char showProgram;
+unsigned char showStatus;
+unsigned char showCnt;
+unsigned char incCnt;
 // Modovi za slejv //// PROGRAM /p |XX|HH|MM|SS|SS|
 struct Mode Program[16];
 // Garden /bXX|YY
@@ -74,31 +79,34 @@ sbit LCD_D7_Direction at TRISB7_bit;
 sbit LCD_D6_Direction at TRISB6_bit;
 sbit LCD_D5_Direction at TRISB5_bit;
 sbit LCD_D4_Direction at TRISB4_bit;
-
+//==================INIT VARIABLES======================
 void init_variables() {
 
   no_ch = 0x00;
   ByteID = 0x00;
   Flag1 = 0x00;
-  Flag2 = 0x00;
-  Flag3 = 0x00;
+  FlagRTC = 0x00;
+  updateLCDFlag = 0x00;
   btnCnt = 0x00;
+  cntDisp=0x00;
   // cnt = 0x00;
   SLAVE_ID = 0x0F;
   for (i = 0; i < 16; i++) {
-   Comm[i] = 0x00;
-   Hour[i] = 0x00;
-   Min[i] = 0x00;
-   Sec[i] = 0x00;
-   Program[i].startHour=0x00;
-   Program[i].startMin=0x00;
-   Program[i].durationsH=0x00;
-   Program[i].durationsL=0x00;
-   Garden[i].modeID=0x00;
-   Garden[i].gardenSend=0x00;
+    Comm[i] = 0x00;
+    Hour[i] = 0x00;
+    Min[i] = 0x00;
+    Sec[i] = 0x00;
+    Status1[i]=0x00;
+    Program[i].startHour = 0x00;
+    Program[i].startMin = 0x00;
+    Program[i].durationsH = 0x00;
+    Program[i].durationsL = 0x00;
+    Garden[i].modeID = 0x00;
+    Garden[i].gardenSend = 0x00;
+
   }
 }
-
+//===========INIT REGISTERS=====================================
 void init() {
 
   PIR1 = 0b00000000; // flegovi prijema preko UART-a
@@ -146,9 +154,9 @@ void init() {
   Lcd_Init();
   Lcd_Cmd(_LCD_CLEAR);
   Lcd_Cmd(_LCD_CURSOR_OFF);
+  //UpdateLCD();
 }
-
-// Ethernet funkcije
+//=========================ETHERNET===================================================
 unsigned int putConstString(const char *s) {
   unsigned int cnt = 0;
   while (*s) {
@@ -176,7 +184,7 @@ void formBuffer() {
   unsigned char i = 0;
   unsigned char txt[4];
   unsigned char StatusByte = 0x00;
-  no_ch = 0x00; // start of buffer
+  no_ch = 0x00; // pozicioniranje na pocetak niza
 
   for (i = 0; i < 16; i++) {
     if (Comm[i] == 1) { // samo slejvovi koji su se odazvali
@@ -186,23 +194,31 @@ void formBuffer() {
       appendBuffer(" ");
 
       StatusByte = Status1[i];
+      // prosto testiranje SWAM nibbla koji slave salje na
+      // master i ispisavnje statusa na master racunar
       if (!(StatusByte & STATUS_SYSTEM_BIT)) {
         appendBuffer("OFF\n\n");
       } else if (StatusByte & STATUS_WATER_BIT) {
         if (StatusByte & STATUS_MANUAL_BIT) {
           appendBuffer("Watering(Manual_Mode)\n\n");
+            if (StatusByte & STATUS_ALARM_BIT) {
+               appendBuffer("ALARM ON\n\n");
+               }
         } else {
           appendBuffer("Watering(Automatic_Mode)\n\n");
-        }
-      } else if (StatusByte & STATUS_ALARM_BIT) {
+            if (StatusByte & STATUS_ALARM_BIT) {
         appendBuffer("ALARM ON\n\n");
-      } else {
+      }
+        }
+      }
+
+       else {
         appendBuffer("IDLE\n\n");
       }
     }
   }
   buffer[no_ch] = 0x00;
-  no_ch++;
+  no_ch++; // kraj stringa
 }
 unsigned int SPI_Ethernet_UserUDP(unsigned char *remoteHost,
                                   unsigned int remotePort,
@@ -230,7 +246,9 @@ unsigned int SPI_Ethernet_UserTCP(unsigned char *remoteHost,
   }
   if (getRequest[5] == 'r') { // RTC
     // RTC setup
-    Flag2 = 0x01;
+    FlagRTC = 0x01; // setovanje Flega za RTC
+    // ASCII konverzija koja se vrsi pri dobijanju podatka 0=>030, ako dobijemo
+    // broj 8 => 0x38 propustimo samo donji nibble maskom 0x0F i dobijemo 0x08
     hours = (getRequest[6] & 0x0F) * 10 + (getRequest[7] & 0x0F);
     minutes = (getRequest[8] & 0x0F) * 10 + (getRequest[9] & 0x0F);
     seconds = (getRequest[10] & 0x0F) * 10 + (getRequest[11] & 0x0F);
@@ -240,8 +258,12 @@ unsigned int SPI_Ethernet_UserTCP(unsigned char *remoteHost,
     Garden[(getRequest[6] & 0x0F) * 10 + (getRequest[7] & 0x0F)].gardenSend =
         0x01;
   } else if (getRequest[5] == 'p') { // Program
-     unsigned char idx;
-     idx = (getRequest[6] & 0x0F) * 10 + (getRequest[7] & 0x0F);
+
+    // Koristimo struct Program kako bi smo smanjili sansu pristupa
+    // popgresnoj memoriji u nassem slucauju /pXXHHMMSSSS => idx =
+    // XX => Program[XX].HH=ASCII(HH);
+    unsigned char idx;
+    idx = (getRequest[6] & 0x0F) * 10 + (getRequest[7] & 0x0F);
     Program[idx].startHour =
         (getRequest[8] & 0x0F) * 10 + (getRequest[9] & 0x0F);
     Program[idx].startMin =
@@ -272,7 +294,7 @@ void transmit(unsigned char DATA8b) {
   while (!TXSTA.TRMT)
     ;
 }
-
+//=======================INTERRUPT===============================
 void interrupt() {
   if ((PIE1.TMR1IE == 1) && (PIR1.TMR1IF == 1)) {
     // prekid tajmera 1 -  na svakih 25ms PIE1.TMR1IE = 1;
@@ -283,8 +305,32 @@ void interrupt() {
     } else {
       brojac++;
     }
+    // 25ms
+    if ((ButtonInc == 1) && btnCnt == 0) {
+      btnCnt = 20;
+      updateLCDFlag = 1;
+      if (cntDisp >= 20) {
+        cntDisp = 0;
+      } else {
+        cntDisp++;
+      }
+    } else if(btnCnt>0) {
+      btnCnt--;
+    }
+    if ((ButtonDec == 1) && btnCnt == 0) {
+      btnCnt = 20;
+      updateLCDFlag = 1;
+      if (cntDisp == 0) {
+        cntDisp = 20;
+      } else {
+        cntDisp--;
+      }
+    } else if(btnCnt>0) {
+      btnCnt--;
+    }
+
     TMR1L = 0xB5;
-    TMR1H = 0xB3; // reset tajmera
+    TMR1H = 0xB3; /// reset tajmera
   }
 
   if ((PIE1.RCIE) && (PIR1.RCIF)) { // UART RECIEVE FROM SLAVE
@@ -317,7 +363,7 @@ void interrupt() {
     }
   }
 }
-
+//=========LCD============================
 void lcdDisplayUchar(unsigned char row, unsigned char col,
                      unsigned char value) {
   unsigned char ones;
@@ -331,86 +377,76 @@ void lcdDisplayUchar(unsigned char row, unsigned char col,
   Lcd_Chr(row, col, tens + '0');
   Lcd_Chr(row, col + 1, ones + '0');
 }
-void lcdDisplaySWAM(unsigned char STATUS, unsigned char ID) {
-  unsigned int i;
-  Lcd_Cmd(_LCD_CLEAR);
-  Lcd_Out(1, 1, "GARDEN_ID  SWAM");
-  lcdDisplayUchar(2,1,ID);
-  lcdDisplayUchar(2,12,STATUS);
+void lcdDisplayBit(unsigned char mask) {
+  unsigned char i;
+  for (i = 0; i <= 16; i++) {
+    if ((Status1[i] & mask) == mask) {
+      Lcd_Chr(2, 16 - i, '1');
+    }else{
+      Lcd_Chr(2, 16 - i, '0');
+      }
+  }
 }
 void lcdDisplayProgram(struct Mode Program, unsigned char ID) {
-  Lcd_Cmd(_LCD_CLEAR);
-  Lcd_Out(1, 1, "Prog:");
+  // Lcd_Cmd(_LCD_CLEAR);
+  Lcd_Out(1, 1, "Prog: ");
   lcdDisplayUchar(1, 6, ID);
+  Lcd_Out(1, 9, "   ");
   Lcd_Out(1, 12, "Totl");
   lcdDisplayUchar(2, 1, Program.startHour);
   Lcd_Chr(2, 3, ':');
   lcdDisplayUchar(2, 4, Program.startMin);
+  Lcd_Out(2, 6, "  ");
   Lcd_Chr(2, 8, '/');
   lcdDisplayUchar(2, 10, Program.durationsH);
   lcdDisplayUchar(2, 13, Program.durationsL);
 }
-void processInputPrg() {
-  static unsigned char prevBtn = 0;
-  unsigned char curBtn;
-  curBtn = (ButtonProgram == 1) ? 1 : 0;
-  if ((curBtn == 1) && (prevBtn == 0)) {
-    lcdDisplayProgram(Program[btnCnt], btnCnt);
-    if (btnCnt < 15) {
-      btnCnt++;
-    } else {
-      btnCnt = 0;
-    }
+void updateLCD() {
+  if (cntDisp <= 16) {
+    lcdDisplayProgram(Program[cntDisp], cntDisp);
+  } else if (cntDisp == 17) { // System
+    Lcd_Out(1, 1, "Operation");
+    Lcd_Out(1, 10, "      ");
+    lcdDisplayBit(STATUS_SYSTEM_BIT);
+  } else if (cntDisp == 18) { // Watering
+    Lcd_Out(1, 1, "Watering");
+    Lcd_Out(1, 9, "       ");
+    lcdDisplayBit(STATUS_WATER_BIT);
+  } else if (cntDisp == 19) { // Alarm
+    Lcd_Out(1, 1, "Alarm");
+    Lcd_Out(1, 6, "         ");
+    lcdDisplayBit(STATUS_ALARM_BIT);
+  } else if (cntDisp == 20) { // Manual
+    Lcd_Out(1, 1, "Manual");
+    Lcd_Out(1, 7, "         ");
+    lcdDisplayBit(STATUS_MANUAL_BIT);
   }
-  prevBtn = curBtn;
-  return;
 }
-void processInputSt() {
-  static unsigned char prevBtn = 0;
-  unsigned char curBtn;
-  curBtn = (ButtonStatus == 1) ? 1 : 0;
-  if ((curBtn == 1) && (prevBtn == 0)) {
-    lcdDisplaySWAM(Status1[btnCnt], btnCnt);
-    if (btnCnt < 15) {
-      btnCnt++;
-    } else {
-      btnCnt = 0;
-    }
-  }
-  prevBtn = curBtn;
-  return;
-}
+//==================MAIN========================
 void main(void) {
   init();
   init_variables();
 
   while (1) {
     SPI_Ethernet_doPacket();
+    //updateLCD();
+
     if (Flag1 == 0x01) {
       Flag1 = 0x00;
       SLAVE_ID++;
-      processInputSt();
-      processInputPrg();
-      if (SLAVE_ID == 0x10) {
+      if (updateLCDFlag == 1) {
+        updateLCDFlag = 0;
+        //Lcd_Cmd(_LCD_CLEAR);
+        updateLCD();
+      }
+      DR = 1;
+      transmit(STATUS_CODE | SLAVE_ID); // pitamo za status slejva
+      DR = 0;
+      ByteID = BYTE_ID_CMD_BYTE; // ocekujemo cmd_byte
+      if (SLAVE_ID == 0x10) {    // svi slejovi pollovani
         SLAVE_ID = 0x00;
         PORTA.F4 = 1;
-      } // svi slejovi pollovani
-      else { /// RTC SEND TO SLAVE
-        PORTA.F4 = 0;
-        if (Flag3 == 0x00 && Flag2 == 0x01) {
-          DR = 1;
-          transmit(RTC_CODE | SLAVE_ID);
-          transmit(hours);
-          transmit(minutes);
-          transmit(seconds);
-          DR = 0;
-          ByteID = BYTE_ID_CMD_BYTE;
-        } else if (Flag3 == 0x01) {
-          Flag3 = 0x00;
-          Flag2 = 0x00;
-        } else if (Flag2 == 0x01) {
-          Flag3 = 0x01;
-        }
+       // updateLCDFlag=1;
       }
       if (Garden[SLAVE_ID].gardenSend == 0x01) {
         DR = 1;
@@ -425,6 +461,20 @@ void main(void) {
         ByteID = BYTE_ID_CMD_BYTE;
       }
     }
+    PORTA.F4 = 0;
+    // saljemo RTC signal svim bastama, da bi smo izbegli kasnjenja
+    if (FlagRTC == 0x01) {
+      DR = 1;
+      transmit(RTC_BROADCAST); // 0x1F
+      // transmit(RTC_CODE|SLAVE_ID);
+      transmit(hours);
+      transmit(minutes);
+      transmit(seconds);
+      DR = 0;
+      FlagRTC = 0x00;
+      ByteID = BYTE_ID_CMD_BYTE;
+    }
+
     // while(1)
   }
 }

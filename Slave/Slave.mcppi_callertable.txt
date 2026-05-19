@@ -27,7 +27,10 @@ main
 				Delay_1us
 				Delay_5500us
 				Delay_50us
+	ReadADC
 	transmit
+	buildStatusByte
+	toBcd
 interrupt
 	IncrementTime
 	DecodeTime
