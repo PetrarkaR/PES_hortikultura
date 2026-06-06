@@ -1,9 +1,26 @@
-0	1	mikroCPIC1618.exe -MSF -DBG -pP16F877A -DL -O11111114 -fo20 -N"C:\Users\Student 1\Documents\PES\Archive\Slave\Slave.mcppi" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"C:\Users\Student 1\Documents\PES\Archive\Slave\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program\" -SP"D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program\" -SP"D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\" -SP"C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program\" -SP"D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\" -SP"D:\Korisnici\Borko\fakultet\projektovanjeSistema2\" -SP"C:\Users\Student 1\Documents\PES\Archive\commons\" -IP"C:\Users\Student 1\Documents\PES\Archive\commons\" "Slave.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_UART_c67.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl"	 
-diagnostics: 0	126	All files Preprocessed in 31 ms	 
+0	1	mikroCPIC1618.exe -MSF -DBG -pP16F877A -DL -O11111114 -fo20 -N"C:\Users\Student 1\Documents\Hortikultura\Slave\Slave.mcppi" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"C:\Users\Student 1\Documents\Hortikultura\Slave\" -SP"C:\Users\Student 1\Documents\PES\Archive\Slave\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program\" -SP"D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program\" -SP"D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\" -SP"C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs\" -SP"C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16\" -SP"N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program\" -SP"D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\" -SP"D:\Korisnici\Borko\fakultet\projektovanjeSistema2\" -SP"C:\Users\Student 1\Documents\PES\Archive\commons\" -SP"C:\Users\Student 1\Documents\Hortikultura\commons\" -IP"C:\Users\Student 1\Documents\PES\Archive\commons\" -IP"C:\Users\Student 1\Documents\Hortikultura\commons\" "Slave.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_UART_c67.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl"	 
+warning: 0	1501	Specified search path does not exist: 'C:\Users\Student 1\Documents\PES\Archive\Slave'	 
+warning: 0	1501	Specified search path does not exist: 'C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs'	 
+warning: 0	1501	Specified search path does not exist: 'C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16'	 
+warning: 0	1501	Specified search path does not exist: 'I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program'	 
+warning: 0	1501	Specified search path does not exist: 'D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program'	 
+warning: 0	1501	Specified search path does not exist: 'D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program'	 
+warning: 0	1501	Specified search path does not exist: 'C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs'	 
+warning: 0	1501	Specified search path does not exist: 'C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16'	 
+warning: 0	1501	Specified search path does not exist: 'N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program'	 
+warning: 0	1501	Specified search path does not exist: 'D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program'	 
+warning: 0	1501	Specified search path does not exist: 'D:\Korisnici\Borko\fakultet\projektovanjeSistema2'	 
+warning: 0	1501	Specified search path does not exist: 'C:\Users\Student 1\Documents\PES\Archive\commons'	 
+warning: 0	1502	Specified include path does not exist: 'C:\Users\Student 1\Documents\PES\Archive\commons'	 
+hint: 0	1138	Available RAM: 352 [bytes], Available ROM: 8192 [bytes]	 
+diagnostics: 0	126	All files Preprocessed in 47 ms	 
 diagnostics: 0	122	Compilation Started	Slave.c
-diagnostics: 585	123	Compiled Successfully	Slave.c
+warning: 730	1509	Generated baud rate is 19231 bps (error = 0.16 percent)	Slave.c
+diagnostics: 740	123	Compiled Successfully	Slave.c
 diagnostics: 0	127	All files Compiled in 141 ms	 
+hint: 0	1143	Used RAM (bytes): 72 (20%)  Free RAM (bytes): 280 (80%)	Used RAM (bytes): 72 (20%)  Free RAM (bytes): 280 (80%)
+hint: 0	1143	Used ROM (program words): 1489 (18%)  Free ROM (program words): 6703 (82%)	Used ROM (program words): 1489 (18%)  Free ROM (program words): 6703 (82%)
 diagnostics: 0	125	Project Linked Successfully	Slave.mcppi
-diagnostics: 0	128	Linked in 188 ms	 
-diagnostics: 0	129	Project 'Slave.mcppi' completed: 422 ms	 
-diagnostics: 0	103	Finished successfully: 18 May 2026, 12:26:39	Slave.mcppi
+diagnostics: 0	128	Linked in 234 ms	 
+diagnostics: 0	129	Project 'Slave.mcppi' completed: 469 ms	 
+diagnostics: 0	103	Finished successfully: 25 May 2026, 17:42:09	Slave.mcppi

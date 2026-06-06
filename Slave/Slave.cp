@@ -1,6 +1,6 @@
-#line 1 "C:/Users/Student 1/Documents/PES/Archive/Slave/Slave.c"
-#line 1 "c:/users/student 1/documents/pes/archive/slave/../commons/config.h"
-#line 19 "C:/Users/Student 1/Documents/PES/Archive/Slave/Slave.c"
+#line 1 "C:/Users/Student 1/Documents/Hortikultura/Slave/Slave.c"
+#line 1 "c:/users/student 1/documents/hortikultura/slave/../commons/config.h"
+#line 19 "C:/Users/Student 1/Documents/Hortikultura/Slave/Slave.c"
 unsigned char GARDEN_ID = 0x00;
 unsigned char Tmp_time_left_high = 0x00;
 unsigned char Tmp_time_left_low = 0x00;
@@ -74,6 +74,12 @@ void init();
 void UpdateLCD();
 
 
+bit m_bSystemOn;
+bit m_bWatering;
+bit m_bAlarm;
+
+
+
 sbit LCD_RS at RC0_bit;
 sbit LCD_EN at RC2_bit;
 sbit LCD_D7 at RD7_bit;
@@ -143,16 +149,22 @@ void init_variables()
   PORTA.F2  = 1;
   PORTA.F3  = 0;
   PORTA.F4  = 0;
+
+ m_bSystemOn=0;
+ m_bWatering=0;
+ m_bAlarm =0;
+
+ Lcd_Cmd(_LCD_CLEAR);
+ Lcd_Cmd(_LCD_CURSOR_OFF);
 }
 
-unsigned char ReadADC() {
+unsigned char ReadADC()
+{
  ADCON0.GO_DONE = 1;
  while (ADCON0.GO_DONE)
  ;
  return ADRESH;
 }
-
-
 
 void transmit(unsigned char DATA8b)
 {
@@ -171,45 +183,59 @@ void DecodeTime()
 
 void ProcessInputs()
 {
-
- if (cntManual > 0) cntManual--;
- if ( PORTB.F0  == 0) TMP_Taster1 = 0;
+#line 220 "C:/Users/Student 1/Documents/Hortikultura/Slave/Slave.c"
+ if (cntManual > 0)
+ cntManual--;
+ if ( PORTB.F0  == 0)
+ TMP_Taster1 = 0;
  if ((cntManual == 0) && (TMP_Taster1 == 0) && ( PORTB.F0  == 1))
  {
  TMP_Taster1 = 1;
  cntManual =  10 ;
- if (ManualMode == 1) ManualMode = 0;
- else ManualMode = 1;
+ if (ManualMode == 1)
+ ManualMode = 0;
+ else
+ ManualMode = 1;
  ManualEvent = 1;
  }
 
 
- if (cntReset > 0) cntReset--;
- if ( PORTB.F2  == 0) TMP_Reset1 = 0;
+ if (cntReset > 0)
+ cntReset--;
+ if ( PORTB.F2  == 0)
+ TMP_Reset1 = 0;
  if ((cntReset == 0) && (TMP_Reset1 == 0) && ( PORTB.F2  == 1))
  {
  TMP_Reset1 = 1;
  cntReset =  10 ;
  ResetEvent = 1;
  }
+
 }
 
 unsigned char buildStatusByte()
 {
  unsigned char status = 0x00;
- if ( PORTA.F2 ) status |=  0x80 ;
- if ( PORTA.F3 ) status |=  0x40 ;
- if ( PORTA.F4 ) status |=  0x20 ;
- if (ManualMode) status |=  0x10 ;
+ if (m_bSystemOn)
+ status |=  0x80 ;
+ if (m_bWatering)
+ status |=  0x40 ;
+ if (m_bAlarm)
+ status |=  0x20 ;
+ if (ManualMode)
+ status |=  0x10 ;
  return status;
 }
-
-
+#line 280 "C:/Users/Student 1/Documents/Hortikultura/Slave/Slave.c"
 unsigned char toBcd(unsigned char val)
 {
  unsigned char tens;
  tens = 0;
- while (val > 9) { val -= 10; tens++; }
+ while (val > 9)
+ {
+ val -= 10;
+ tens++;
+ }
  return (tens << 4) | val;
 }
 
@@ -218,7 +244,6 @@ void main()
  init();
  init_variables();
  Lcd_Init();
- Lcd_Cmd(_LCD_CURSOR_OFF);
  UpdateLCD();
 
  while (1)
@@ -228,12 +253,17 @@ void main()
  if (ResetEvent == 1)
  {
  ResetEvent = 0;
-  PORTA.F3  = 0;
-  PORTA.F2  = 1;
-  PORTA.F4  = 0;
+
  ManualMode = 0;
  ManualEvent = 0;
  WateringSec = 0;
+
+ m_bSystemOn = 1;
+ m_bWatering = 0;
+ m_bAlarm = 0;
+  PORTA.F3  = 0;
+  PORTA.F2  = 1;
+  PORTA.F4  = 0;
  }
 
 
@@ -244,13 +274,19 @@ void main()
  {
 
  WateringSec = 180;
+ m_bWatering = 1;
   PORTA.F3  = 1;
+ m_bSystemOn = 1;
   PORTA.F2  = 1;
  }
  else
  {
 
  WateringSec = 0;
+ m_bWatering = 0;
+  PORTA.F3  = 0;
+ m_bSystemOn = 1;
+  PORTA.F2  = 1;
  }
  }
 
@@ -259,40 +295,56 @@ void main()
  UpdateLCDFlag = 0;
 
 
- if (( PORTA.F3  == 0) &&
+ if ((m_bWatering == 0) &&
  (Seconds == 0x00) &&
  (Hours == ProgStartHour) &&
  (Minutes == ProgStartMin))
  {
- WateringSec = ((unsigned int)time_left_high << 8) | time_left_low;
+
+ WateringSec = (unsigned int) ((time_left_high * 100) + time_left_low);
+
+ m_bWatering = 1;
   PORTA.F3  = 1;
+ m_bSystemOn = 1;
   PORTA.F2  = 1;
  }
 
 
- if ( PORTA.F3  == 1)
+ if (m_bWatering == 1)
  {
- if (WateringSec > 0) WateringSec--;
+ if (WateringSec > 0)
+ WateringSec--;
+
  if (WateringSec == 0)
  {
+ m_bWatering = 0;
   PORTA.F3  = 0;
+ m_bSystemOn = 1;
   PORTA.F2  = 1;
+
  ManualMode = 0;
  }
  }
 
  FlowValue = ReadADC();
- if ( PORTA.F3  == 1)
+
+ if (m_bWatering == 1)
  {
- if ((FlowValue < FlowMin) || (FlowValue > FlowMax))
+ if ((FlowValue < FlowMin) || (FlowValue > FlowMax)) {
   PORTA.F4  = 1;
- else
+ m_bAlarm = 1;
+ }
+ else {
   PORTA.F4  = 0;
+ m_bAlarm = 0;
+ }
  }
  else
  {
   PORTA.F4  = 0;
+ m_bAlarm = 0;
  }
+
  UpdateLCD();
  }
 
@@ -300,6 +352,8 @@ void main()
  {
  ByteID = 0;
  }
+
+
  if (CallFlag == 1)
  {
 
@@ -309,6 +363,7 @@ void main()
   PORTC.F5  = 0;
  CallFlag = 0;
  }
+
  if (RTCSetupFlag == 1)
  {
  Sec_X1 = Tmp_Sec_X1;
@@ -429,19 +484,22 @@ void interrupt()
 
  if (ByteID == 0x00)
  {
- if(((ch & 0x0F)== GARDEN_ID) && ((ch&0xE0)==0xA0))
+ if (((ch & 0x0F) == GARDEN_ID) && ((ch & 0xE0) == 0xA0))
  {
- Command=ch;
+ Command = ch;
  ByteID = 0x08;
- Counter2=4;
+ Counter2 = 4;
  }
- else if((ch&0xE0)==0x60){
+ else if (ch == 0x7F)
+ {
  ByteID = 0x03;
  Counter2 = 3;
  }
- else if(((ch&0x0F)==GARDEN_ID)&& ((ch&0xE0)==0x20)){
- Command= ch;
- ByteID=0x00;
+ else if (((ch & 0x0F) == GARDEN_ID) && ((ch & 0xE0) == 0x20))
+ {
+ Command = ch;
+ ByteID = 0x00;
+ CallFlag = 1;
  }
  }
  else if (ByteID == 0x03)
@@ -490,12 +548,72 @@ void interrupt()
  }
  }
 }
+void LcdOut3(unsigned char row, unsigned char col, unsigned char value);
+void LcdOutDuration(unsigned char row, unsigned char col, unsigned int seconds);
+void LcdOut2(unsigned char row, unsigned char col, unsigned char value);
+
+void LcdOut2(unsigned char row, unsigned char col, unsigned char value)
+{
+ unsigned char tens;
+
+ tens = 0;
+ while (value > 9)
+ {
+ value -= 10;
+ tens++;
+ }
+
+ Lcd_Chr(row, col, tens + '0');
+ Lcd_Chr(row, col + 1, value + '0');
+}
+
+void LcdOutDuration(unsigned char row, unsigned char col, unsigned int seconds)
+{
+ unsigned char minutes;
+
+ minutes = 0;
+ while ((seconds >= 60) && (minutes < 99))
+ {
+ seconds -= 60;
+ minutes++;
+ }
+ if (seconds >= 60)
+ {
+ seconds = 59;
+ }
+
+ LcdOut2(row, col, minutes);
+ Lcd_Chr(row, col + 2, ':');
+ LcdOut2(row, col + 3, (unsigned char)seconds);
+}
+
+void LcdOut3(unsigned char row, unsigned char col, unsigned char value)
+{
+ unsigned char hundreds;
+ unsigned char tens;
+
+ hundreds = 0;
+ tens = 0;
+
+ while (value > 99)
+ {
+ value -= 100;
+ hundreds++;
+ }
+ while (value > 9)
+ {
+ value -= 10;
+ tens++;
+ }
+
+ Lcd_Chr(row, col, hundreds + '0');
+ Lcd_Chr(row, col + 1, tens + '0');
+ Lcd_Chr(row, col + 2, value + '0');
+}
+
 
 void UpdateLCD()
 {
- unsigned char buf[4];
-
-
  Lcd_Out(1, 1, "T ");
  Lcd_Chr(1, 3, Hour_X10 + '0');
  Lcd_Chr(1, 4, Hour_X1 + '0');
@@ -505,19 +623,22 @@ void UpdateLCD()
  Lcd_Chr(1, 8, ':');
  Lcd_Chr(1, 9, Sec_X10 + '0');
  Lcd_Chr(1, 10, Sec_X1 + '0');
- Lcd_Out(1, 12, "F:");
+ Lcd_Chr(1, 11, ' ');
+ Lcd_Out(1, 12, "F");
+ LcdOut3(1, 13, FlowValue);
 
- Lcd_Out(1, 14, FlowValue);
+ if (m_bAlarm) Lcd_Chr(2, 1, 'A'); else Lcd_Chr(2, 1, '/');
+ if (ManualMode) Lcd_Chr(2, 2, 'M'); else Lcd_Chr(2, 2, '/');
 
+ Lcd_Out(2, 3, "S:");
+ Lcd_Chr(2, 4, (Tmp_ProgStartHour / 10)+ '0');
+ Lcd_Chr(2, 5, (Tmp_ProgStartHour % 10)+ '0');
+ Lcd_Out(2, 6, ":");
+ Lcd_Chr(2, 7, (Tmp_ProgStartMin / 10)+ '0');
+ Lcd_Chr(2, 8, (Tmp_ProgStartMin % 10)+ '0');
 
- Lcd_Out(2, 1, "S:");
- if ( PORTA.F2 ) Lcd_Chr(2, 3, '1'); else Lcd_Chr(2, 3, '0');
- Lcd_Out(2, 5, "W:");
- if ( PORTA.F3 ) Lcd_Chr(2, 7, '1'); else Lcd_Chr(2, 7, '0');
- Lcd_Out(2, 9, "A:");
- if ( PORTA.F4 ) Lcd_Chr(2, 11, '1'); else Lcd_Chr(2, 11, '0');
- Lcd_Out(2, 13, "M:");
- if (ManualMode) Lcd_Chr(2, 15, '1'); else Lcd_Chr(2, 15, '0');
+ Lcd_Out(2, 10, " R");
+ LcdOutDuration(2, 12, WateringSec);
 }
 
 void init()
@@ -537,7 +658,6 @@ void init()
 
  ADCON1 = 0b00001110;
  ADCON0 = 0b10000001;
-
 
  INTCON = 0b11000000;
  PIE1 = 0b00000000;

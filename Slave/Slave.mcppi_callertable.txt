@@ -4,13 +4,13 @@ main
 	init
 		UART1_Init
 	init_variables
+		Lcd_Cmd
+			Delay_1us
+			Delay_5500us
+			Delay_50us
 	Lcd_Init
 		Delay_5500us
 		Delay_1us
-	Lcd_Cmd
-		Delay_1us
-		Delay_5500us
-		Delay_50us
 	UpdateLCD
 		Lcd_Out
 			Lcd_Cmd
@@ -27,6 +27,26 @@ main
 				Delay_1us
 				Delay_5500us
 				Delay_50us
+		LcdOut3
+			Lcd_Chr
+				Lcd_Cmd
+					Delay_1us
+					Delay_5500us
+					Delay_50us
+		Div_8x8_U
+		LcdOutDuration
+			LcdOut2
+				Lcd_Chr
+					Lcd_Cmd
+						Delay_1us
+						Delay_5500us
+						Delay_50us
+			Lcd_Chr
+				Lcd_Cmd
+					Delay_1us
+					Delay_5500us
+					Delay_50us
+	Mul_8x8_U
 	ReadADC
 	transmit
 	buildStatusByte

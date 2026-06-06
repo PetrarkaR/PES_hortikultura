@@ -33,24 +33,27 @@ Count=0
 [OTHER_FILES]
 Count=0
 [SEARCH_PATH]
-Count=14
+Count=16
 Path0=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\
 Path1=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
-Path2=C:\Users\Student 1\Documents\PES\Archive\Slave\
-Path3=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
-Path4=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
-Path5=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program\
-Path6=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program\
-Path7=D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
-Path8=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs\
-Path9=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
-Path10=N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
-Path11=D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
-Path12=D:\Korisnici\Borko\fakultet\projektovanjeSistema2\
-Path13=C:\Users\Student 1\Documents\PES\Archive\commons\
+Path2=C:\Users\Student 1\Documents\Hortikultura\Slave\
+Path3=C:\Users\Student 1\Documents\PES\Archive\Slave\
+Path4=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
+Path5=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
+Path6=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Slejv\Program\
+Path7=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Projekti\Programski kod - Sistem za naplatu putarine\Slejv\program\
+Path8=D:\Korisnici\Borko\Fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
+Path9=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\defs\
+Path10=C:\Program Files\Mikroelektronika\mikroC PRO for PIC\Uses\P16\
+Path11=N:\Nastava\Projektovanje sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
+Path12=D:\Korisnici\Borko2\fakultet\Predmeti\Projektovanje elektronskih sistema\Projekti\Sistem za naplatu putarine\Slejv\program\
+Path13=D:\Korisnici\Borko\fakultet\projektovanjeSistema2\
+Path14=C:\Users\Student 1\Documents\PES\Archive\commons\
+Path15=C:\Users\Student 1\Documents\Hortikultura\commons\
 [HEADER_PATH]
-Count=1
+Count=2
 Path0=C:\Users\Student 1\Documents\PES\Archive\commons\
+Path1=C:\Users\Student 1\Documents\Hortikultura\commons\
 [HEADERS]
 Count=1
 File0=..\commons\config.h

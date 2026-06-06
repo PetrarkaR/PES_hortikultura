@@ -569,6 +569,7 @@ main
 							____DoIFC
 			SPI_Ethernet_setBitReg
 				____DoIFC
+	transmit
 	updateLCD
 		lcdDisplayProgram
 			Lcd_Out
@@ -608,5 +609,4 @@ main
 					Delay_1us
 					Delay_5500us
 					Delay_50us
-	transmit
 interrupt

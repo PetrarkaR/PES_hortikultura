@@ -6,7 +6,7 @@ Value=0
 [BUILD_TYPE]
 Value=0
 [ACTIVE_TAB]
-Value=Master.c
+Value=..\Slave\Slave.c
 [USE_EEPROM]
 Value=0
 [EEPROM_DEFINITION]
@@ -29,8 +29,7 @@ Count=0
 Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
-Count=1
-File0=Master.c
+Count=0
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]
@@ -38,18 +37,21 @@ Count=0
 [OTHER_FILES]
 Count=0
 [SEARCH_PATH]
-Count=8
+Count=10
 Path0=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\defs\
 Path1=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\uses\P18\
-Path2=C:\Users\Student 1\Documents\PES\Archive\Master\
-Path3=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
-Path4=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\
-Path5=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\
-Path6=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program\
-Path7=C:\Users\Student 1\Documents\PES\Archive\commons\
+Path2=C:\Users\Student 1\Documents\Hortikultura\Master\
+Path3=C:\Users\Student 1\Documents\PES\Archive\Master\
+Path4=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\defs\
+Path5=C:\Program Files (x86)\Mikroelektronika\mikroC PRO for PIC\uses\P18\
+Path6=I:\Predmeti\ProjektovanjeElektonskihSistema\Studenti\08_MarjanDjordjevic\Program\Program\
+Path7=D:\Users\Borko\Predmeti\Projektovanje elektronskih sistema\Studenti2019\08_MarjanDjordjevic\Program\Program\
+Path8=C:\Users\Student 1\Documents\PES\Archive\commons\
+Path9=C:\Users\Student 1\Documents\Hortikultura\commons\
 [HEADER_PATH]
-Count=1
+Count=2
 Path0=C:\Users\Student 1\Documents\PES\Archive\commons\
+Path1=C:\Users\Student 1\Documents\Hortikultura\commons\
 [HEADERS]
 Count=1
 File0=..\commons\config.h

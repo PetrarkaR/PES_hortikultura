@@ -241,7 +241,7 @@ void formBuffer()
       {
         appendBuffer("IDLE\n\n");
       }
-      appendBuffer("<br>")
+      appendBuffer("<br>");
     }
   }
   buffer[no_ch] = 0x00;
@@ -487,40 +487,40 @@ void lcdDisplayProgram(struct Mode Program, unsigned char ID)
   // Lcd_Cmd(_LCD_CLEAR);
   Lcd_Out(1, 1, "Prog:");
   lcdDisplayUchar(1, 6, ID);
-  Lcd_Out(1, 9, "    ");
-  Lcd_Out(1, 13, "Totl"); // prvi red
+  Lcd_Out(1, 8, "   ");
+  Lcd_Out(1, 12, "Total"); // prvi red
   //=====drugi red=====
   lcdDisplayUchar(2, 1, Program.startHour);
   Lcd_Chr(2, 3, ':');
   lcdDisplayUchar(2, 4, Program.startMin);
   Lcd_Out(2, 6, "  ");
   Lcd_Chr(2, 8, '/');
-  lcdDisplayUchar(2, 9, Program.durationsH);
-  lcdDisplayUchar(2, 11, Program.durationsL);
-  Lcd_Out(2, 13, "   ");
+  Lcd_Out(2, 9, "    ");
+  lcdDisplayUchar(2, 13, Program.durationsH);
+  lcdDisplayUchar(2, 15, Program.durationsL);
 }
 void updateLCD()
 {
-  if (cntDisp <= 16)
+  if (cntDisp < 16)
   {
     lcdDisplayProgram(Program[cntDisp], cntDisp);
   }
-  else if (cntDisp == 17)
+  else if (cntDisp == 16)
   { // System
     Lcd_Out(1, 1, "Operation       ");
     lcdDisplayBit(STATUS_SYSTEM_BIT);
   }
-  else if (cntDisp == 18)
+  else if (cntDisp == 17)
   { // Watering
     Lcd_Out(1, 1, "Watering        ");
     lcdDisplayBit(STATUS_WATER_BIT);
   }
-  else if (cntDisp == 19)
+  else if (cntDisp == 18)
   { // Alarm
     Lcd_Out(1, 1, "Alarm           ");
     lcdDisplayBit(STATUS_ALARM_BIT);
   }
-  else if (cntDisp == 20)
+  else if (cntDisp == 19)
   { // Manual
     Lcd_Out(1, 1, "Manual          ");
     lcdDisplayBit(STATUS_MANUAL_BIT);
@@ -542,6 +542,7 @@ void main(void)
       if (SLAVE_ID == 0x10)
       { // svi slejovi pollovani
         SLAVE_ID = 0x00;
+        updateLCDFlag = 1;
         PORTA.F4 = 1;
       }
       else

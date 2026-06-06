@@ -303,8 +303,14 @@ lcd_out
 lcd_out_cp
 lcd_rs
 lcd_rs_direction
+lcdout2
+lcdout3
+lcdoutduration
 longint2double
 longword2double
+m_balarm
+m_bsystemon
+m_bwatering
 main
 manualevent
 manualmode

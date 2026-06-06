@@ -168,9 +168,6 @@ void init_variables()
    m_bSystemOn=0;
    m_bWatering=0;
    m_bAlarm   =0;
-
-   Lcd_Cmd(_LCD_CLEAR);
-   Lcd_Cmd(_LCD_CURSOR_OFF); // Cursor off
 }
 
 unsigned char ReadADC()
@@ -198,7 +195,7 @@ void DecodeTime()
 
 void ProcessInputs()
 {
-/*
+
    // 100 ms
    if (cntManual > 0)
       cntManual--;
@@ -214,9 +211,9 @@ void ProcessInputs()
       cntManual = DEBOUNCE_TICKS;
       ResetEvent = 1;
    }
-*/
+
    // Taster (PORTB.F0) - manual mode
-   
+   /*
    if (cntManual > 0)
       cntManual--;
    if (PinTaster == 0)
@@ -243,7 +240,7 @@ void ProcessInputs()
       cntReset = DEBOUNCE_TICKS;
       ResetEvent = 1; // consumed by main
    }
-   
+   */
 }
 
 unsigned char buildStatusByte()
@@ -294,6 +291,7 @@ void main()
    init();
    init_variables();
    Lcd_Init();
+   Lcd_Cmd(_LCD_CURSOR_OFF); // Cursor off
    UpdateLCD();
 
    while (1)
@@ -318,7 +316,7 @@ void main()
 
       // manual dugme , kao toggle radi
       if (ManualEvent == 1)
-      {  
+      {
          ManualEvent = 0;
          if (ManualMode == 1)
          {
@@ -677,16 +675,11 @@ void UpdateLCD()
    Lcd_Out(1, 12, "F");
    LcdOut3(1, 13, FlowValue);
 
-   if (m_bAlarm)    Lcd_Chr(2, 1, 'A'); else Lcd_Chr(2, 1, '/');
-   if (ManualMode)  Lcd_Chr(2, 2, 'M'); else Lcd_Chr(2, 2, '/');
-
-   Lcd_Out(2, 3, "S:");
-   Lcd_Chr(2, 4, (Tmp_ProgStartHour / 10)+ '0');
-   Lcd_Chr(2, 5, (Tmp_ProgStartHour % 10)+ '0');
-   Lcd_Out(2, 6, ":");
-   Lcd_Chr(2, 7, (Tmp_ProgStartMin / 10)+ '0');
-   Lcd_Chr(2, 8, (Tmp_ProgStartMin % 10)+ '0');
-
+   Lcd_Out(2, 1, "SWAM:");
+   if (m_bSystemOn) Lcd_Chr(2, 6, '1'); else Lcd_Chr(2, 6, '0');
+   if (m_bWatering) Lcd_Chr(2, 7, '1'); else Lcd_Chr(2, 7, '0');
+   if (m_bAlarm)    Lcd_Chr(2, 8, '1'); else Lcd_Chr(2, 8, '0');
+   if (ManualMode)  Lcd_Chr(2, 9, '1'); else Lcd_Chr(2, 9, '0');
    Lcd_Out(2, 10, " R");
    LcdOutDuration(2, 12, WateringSec);
 }
