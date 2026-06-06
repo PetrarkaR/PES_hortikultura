@@ -1,0 +1,148 @@
+
+\documentclass[12pt]{article}
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{wrapfig}
+\usepackage{subcaption}
+\usepackage{adjustbox}
+\usepackage{lipsum}
+\usepackage{fontspec}
+\usepackage{textcomp,gensymb}
+\graphicspath{{./images/}}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{ragged2e}
+
+
+
+\numberwithin{figure}{section}
+
+\begin{document}
+\begin{titlepage}
+  \begin{center}
+  \begin{tabular}{ m{3cm} m{8cm} m{3cm} }
+    \hspace*{-1cm}\includegraphics[height=0.22\textwidth]{Unigrb} &
+ \justifying \textbf{\large UNIVERZITET U NIŠU\newline ELEKTRONSKI FAKULTET} &
+    \raggedleft \includegraphics[width=0.17\textwidth]{elfak} \\ 
+  \end{tabular}
+\end{center}
+
+  \vspace{4cm}
+\begin{center}
+ \begin{tabular}{ m{8cm} m{4cm} m{2cm} }
+  \centering\textbf{\large Izveštaj iz predmeta Projektovanje elektronskih sistema}\\
+\end{tabular}
+\end{center}
+\begin{center}
+ \begin{tabular}{ m{8cm} m{5cm} m{2cm} }
+  \centering\textbf{\Huge Sistem za automatsko zalivanje bašta}\\
+\end{tabular}
+\end{center}
+\vfill 
+\begin{tabular}{m{6cm} m{8cm} m{6cm}}
+  \raggedright\textsc{\small Studenti:} \\
+  \textsc{\small Marko Popović 19323} \\ 
+  \textsc{\small Petar Ristić 18881} &
+\raggedleft\textsc{\small Profesor:} \\
+\raggedleft\textsc{\small  Prof. dr Borisav Jovanović } \\
+  \raggedleft \textsc{\small } 
+\end{tabular}
+\end{titlepage}
+\newpage
+\tableofcontents
+\newpage
+
+\section{Opis zadatkta}
+Projektovati sistem za automatizovano zalivanje biljaka u baštama.
+Sistem sadrži sledeće funkcionalne celine: uređaje za zalivanje sa pumpom (do 16 Slejv uređaja) koji se instaliraju u baštama; jedan Master automat i centralni računarski sistem. 
+Slejv uređaji su preko RS485 povezani sa Master automatom koji prikuplja informacije sa Slejv uređaja. 
+Master automat je dalje povezan preko ETHERNET veze sa centralnim računarom.
+
+Uređaj za zalivanje sa pumpom omogućava zalivanje biljaka po unapred definisanom programu rada. 
+Zalivanje se odvija tako što u definisanom vremenskom trenutku početka zalivanja uređaj uključuje pumpu, a isključuje je posle određenog vremena. 
+Vremena uključivanja pumpe i vremensko trajanje zalivanja definisani su programom rada. 
+Postoji 16 različitih programa rada koji se zadaju sa centralnog računara.
+Pošto se smatra da je baštu dovoljno zalivati jednom dnevno, u svakom programu definisano je po jedno vreme uključivanja pumpe, vreme trajanja zalivanja (u sekundama).
+Uređaj za zalivanje poseduje taster za manuelno pokretanje/zaustavljanje procesa zalivanja.
+Kada se zalivanje pokrene manuelno, isključuje se ili manuelno ili automatski posle isteklog vremena trajanja zalivanja definisanog u tekućem programu rada.
+Manuelno zaustavljanje moguće je i kada zalivanje otpočne automatski. 
+Protok vode kroz pumpu prati se očitavanjem senzora protoka. 
+Ukoliko je protok izvan unapred zadatog opsega (minimalni i maksimalni protok) aktivira se zvučni alarm.
+Uređaj za zalivanje poseduje LCD na kome se prikazuju osnovni podaci o tekućem programu rada, statusu sistema, tekućem vremenu.
+Ukoliko je započeto zalivanje na LCD-u se prikazuje i koliko vremena je preostalo do isključivanja pumpe.
+
+Centralni računar treba da omogući:
+\begin{itemize}
+  \item{Očitavanje statusa uređaja za zalivanje (uključen/isključen, start/stop zalivanja, alarm...) svake sekunde.}
+  \item{Definisanje svih 16 programa rada ili definisanje pojedinih vremenskih parametara (vreme uključivanja, trajanje zalivanja) za dati program rada}
+  \item{Daljinsko podešavanje maksimalnog i minimalnog dozvoljenog protoka vode kroz pumpu}
+  \item{Indikaciju alarma.}
+  \item{Manuelno daljinsko uključivanje i isključivanje sistema, kao i daljinsko pokretanje i zaustavljanje procesa zalivanja}
+\end{itemize}
+\newpage
+\section{Funkcionalna i nefunkcionalna specifikacija}
+\textbf{Funkcionalna specifikacija :}
+  \begin{itemize}
+  \item{Sistem se sastoji iz jednog Master i do 16 Slejv automata}
+  \item{Master automat predstavlja centralni automat koji prikuplja informacije od svih Slejv automata i upravlja njima}
+  \item{Master automatom se upravlja putem Centralnog Računarskog Sistema, a samim tim i Slejv automatima}
+  \item{Slejv automati su kontroleri zalivanja koji se nalaze na svakoj bašti i upravljaju protokom i trajanju programa}
+  \item{Master automat čuva statusne informacije od svih prisutnih Slejvova}
+ \item{Master vrši kalibraciju Sata Realnog Vremena svih Slejv automata na zahtev CRS-a}
+ \item{CRS ima funkciju prikazivanja statusa bašte, podešavanja Sata Realnog Vremena i programiranje programa rada}
+  \item{Master automat čuva podatke o 16 programa zalivanja, koje dodeljuje Slejvovima na zahtev CRS-a}
+  \item{Slejv automat odgovara periodično o svom trenutnom stanju}
+  \item{Vrši se prikaz osnovnih podataka na Master ekranu}
+\end{itemize}
+\textbf{Nefunkcionalna specifikacija :}
+\begin{itemize}
+  \item{Uredjaji moraju biti otporni na vlagu, vodu i prašinu, biti dobro izolovani, zbog svog rada u izloženim sredinama}
+  \item{Takodje moraju imati malu potrošnju, i visoku pouzdanost}
+\end{itemize}
+\newpage
+\section{Arhitektura sistema}
+  Arhitekturu sistema čine tri osnovne komponente sistema: 
+  \begin{itemize}
+    \item{Centralni Računarski Sistem (CRS)}
+    \item{Master Automat}
+    \item{Slave automat}
+  \end{itemize}
+
+  \textbf{CRS} je sistem koji služi za upravljanje Master automatom i samim tim i Slejv automatima.
+  Povezan je sa Masterom automatom putem Ethernet veze, statičkom IP adresom, na njihovoj lokalnoj mreži. 
+  Pristup Master automatu vrši se putem HTTP protokola, kucanjem statičke adrese direknto u browser. \newline
+
+ \textbf{Master automat} upravlja Slejv automatima, kojih ima maksimalno 16.
+ Vrši se prozivka svakog Slejva na 125ms, pri kojoj se prikupljaju osnovni podaci o statusu svakog Slejva po protokolu koji će kasnije biti opisan.
+ Automati su u slučaju krakte udaljenosti medjusobno povezani putem RS232 protokola, dok je u suprotnom korišćen RS485 protokol.\newline
+
+ \textbf{Slejv automat} se nalazi kod pumpe svake bašte u sistemu, i upravlja protokom i vremenom operacije pumpe po prethodno definisanom programu koji mu je Master automat dodelio.
+ Takodje ima funkciju alarma u slučaju prevelikog ili premalog protoka vode kroz sistem za zalivanje. \newline
+ \begin{figure}[hb]
+ \centering
+ \includegraphics[height=0.25\textwidth]{arch}
+ \caption{Dijagram arhitekture sistema}
+\end{figure}
+
+  CRS ima jednosmernu komunikaciju ka Masteru, dok Master i Slejv atuomati realizuju obostranu.
+\newpage 
+\section{Realizacija komunikacionog protokola}
+
+  \subsection{Komunikacija izmedju Master i Slejv automata}
+  \subsection{Komunikacija izmedju Master automata i Centralnog Računarskog sistema}
+
+\newpage
+\section{Hardverska Realizacija automata}
+  \subsection{Prikaz sadržaja displeja Master automata}
+
+\newpage
+\section{Realizacija firmvera Master automata}
+  \subsection{Detaljan opis najvažnijih funkcija sa segmentima koda}
+\newpage
+\section{Postupak verifikacije i vrednovanja koda }
+ \subsection{Rezultat rada sistema}
+  \subsection{Stepen ispunjenosti korisničkih zahteva}
+  \newpage
+\section{Detaljno upustvo za upotrebu}
+\end{document}
