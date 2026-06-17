@@ -1,0 +1,70 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{main}\PYG{p}{(}\PYG{k+kt}{void}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{n}{init}\PYG{p}{();}
+\PYG{+w}{  }\PYG{n}{init\PYGZus{}variables}\PYG{p}{();}
+
+\PYG{+w}{  }\PYG{k}{while}\PYG{+w}{ }\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{SPI\PYGZus{}Ethernet\PYGZus{}doPacket}\PYG{p}{();}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Flag1}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mh}{0x01}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{c+c1}{// 125ms}
+\PYG{+w}{      }\PYG{n}{Flag1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{      }\PYG{n}{SLAVE\PYGZus{}ID}\PYG{o}{++}\PYG{p}{;}\PYG{+w}{             }\PYG{c+c1}{// sledeca basta}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mh}{0x10}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{c+c1}{// svi slejovi pollovani}
+\PYG{+w}{        }\PYG{n}{SLAVE\PYGZus{}ID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{PORTA}\PYG{p}{.}\PYG{n}{F4}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}
+\PYG{+w}{        }\PYG{n}{PORTA}\PYG{p}{.}\PYG{n}{F4}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+
+\PYG{+w}{      }\PYG{c+c1}{// B.J. organizacija ne valja,}
+\PYG{+w}{      }\PYG{c+c1}{// saljes SAMO jedan paket, a ne sva tri odjednom}
+
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{Garden}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{].}\PYG{n}{gardenSend}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mh}{0x01}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{DR}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{MODE\PYGZus{}CODE}\PYG{+w}{ }\PYG{o}{|}\PYG{+w}{ }\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{);}\PYG{+w}{ }\PYG{c+c1}{// prvi komandni bajt}
+\PYG{+w}{        }\PYG{c+c1}{//// BrojBaste.BrojPrograma.Start 1Byte}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{Program}\PYG{p}{[}\PYG{n}{Garden}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{].}\PYG{n}{modeID}\PYG{p}{].}\PYG{n}{startHour}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{Program}\PYG{p}{[}\PYG{n}{Garden}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{].}\PYG{n}{modeID}\PYG{p}{].}\PYG{n}{startMin}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{Program}\PYG{p}{[}\PYG{n}{Garden}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{].}\PYG{n}{modeID}\PYG{p}{].}\PYG{n}{durationsH}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{Program}\PYG{p}{[}\PYG{n}{Garden}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{].}\PYG{n}{modeID}\PYG{p}{].}\PYG{n}{durationsL}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{DR}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{Garden}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{].}\PYG{n}{gardenSend}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}CMD\PYGZus{}BYTE}\PYG{p}{;}
+
+\PYG{+w}{        }\PYG{c+c1}{// Sanity check}
+\PYG{+w}{        }\PYG{c+c1}{// B.J. Obavezno  pisite u komentarima sta se dobija od slejva kao}
+\PYG{+w}{        }\PYG{c+c1}{// odgovor koliko ima bajtova, kako izgledaju}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{FlagRTC}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mh}{0x01}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{c+c1}{// saljemo RTC signal svim bastama, da bi smo izbegli kasnjenja}
+\PYG{+w}{        }\PYG{n}{DR}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{RTC\PYGZus{}BROADCAST}\PYG{p}{);}\PYG{+w}{ }\PYG{c+c1}{// 0x1F}
+\PYG{+w}{        }\PYG{c+c1}{// transmit(RTC\PYGZus{}CODE|SLAVE\PYGZus{}ID);}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{hours}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{minutes}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{seconds}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{DR}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{FlagRTC}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}CMD\PYGZus{}BYTE}\PYG{p}{;}
+
+\PYG{+w}{        }\PYG{c+c1}{// Sanity check}
+\PYG{+w}{        }\PYG{c+c1}{// B.J. Obavezno pisite u komentarima sta se dobija od slejva kao}
+\PYG{+w}{        }\PYG{c+c1}{// odgovor koliko ima bajtova, kako izgledaju}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{DR}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{transmit}\PYG{p}{(}\PYG{n}{STATUS\PYGZus{}CODE}\PYG{+w}{ }\PYG{o}{|}\PYG{+w}{ }\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{);}\PYG{+w}{ }\PYG{c+c1}{// pitamo za status slejva}
+\PYG{+w}{        }\PYG{n}{DR}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}CMD\PYGZus{}BYTE}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// ocekujemo cmd\PYGZus{}byte}
+
+\PYG{+w}{        }\PYG{c+c1}{// Sanity check}
+\PYG{+w}{        }\PYG{c+c1}{// B.J. Obavezno pisite u komentarima sta se dobija od slejva kao}
+\PYG{+w}{        }\PYG{c+c1}{// odgovor koliko ima bajtova, kako izgledaju}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{c+c1}{// od  if (Flag1 == 0x01)}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{updateLCDFlag}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{      }\PYG{n}{updateLCDFlag}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{      }\PYG{n}{updateLCD}\PYG{p}{();}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{c+c1}{// od while(1)}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

@@ -1,0 +1,46 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{+w}{    }\PYG{c+c1}{// serijski prijem (UART) ================================}
+\PYG{c+cp}{\PYGZsh{}define UART\PYGZus{}BAUD\PYGZus{}RATE 19200}
+\PYG{c+c1}{// Protokol Master \PYGZhy{}\PYGZgt{} Slave:==============================}
+\PYG{c+cm}{/*}
+\PYG{c+cm}{ * ========================================================}
+\PYG{c+cm}{ *RTC promenljive 011|x|idid| \PYGZhy{}\PYGZgt{} 0x60 + 3 Bytes HH|MM||SS}
+\PYG{c+cm}{ *Biranje moda 101|x|idid| \PYGZhy{}\PYGZgt{} 0xA0 + 5 Bytes /pXX|HH|MM|SS|SS}
+\PYG{c+cm}{ * ========================================================}
+\PYG{c+cm}{ */}
+\PYG{c+cp}{\PYGZsh{}define RTC\PYGZus{}CODE 0x60}
+\PYG{c+cp}{\PYGZsh{}define RTC\PYGZus{}BYTES 3 }\PYG{c+c1}{// DONE}
+\PYG{c+cp}{\PYGZsh{}define MODE\PYGZus{}CODE 0xA0}
+\PYG{c+cp}{\PYGZsh{}define MODE\PYGZus{}BYTES 5}
+\PYG{c+cp}{\PYGZsh{}define RTC\PYGZus{}BROADCAST 0x7F}
+\PYG{c+c1}{// Slave \PYGZhy{}\PYGZgt{} Master status response byte.}
+\PYG{c+cp}{\PYGZsh{}define STATUS\PYGZus{}CODE 0x20}
+\PYG{c+c1}{// Byte\PYGZhy{}id states used while receiving protocol payload bytes.}
+\PYG{c+c1}{// 0 means no payload is currently being received.}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}IDLE 0x00}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}RTC\PYGZus{}HOUR 0x04}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}RTC\PYGZus{}MIN 0x03}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}RTC\PYGZus{}SEC 0x02}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}MODE\PYGZus{}PROGRAM 0x09}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}MODE\PYGZus{}START\PYGZus{}HOUR 0x08}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}MODE\PYGZus{}START\PYGZus{}MIN 0x07}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}MODE\PYGZus{}DURATION\PYGZus{}H 0x06}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}MODE\PYGZus{}DURATION\PYGZus{}L 0x05}
+\PYG{c+cp}{\PYGZsh{}define STATUS\PYGZus{}SYSTEM\PYGZus{}BIT 0x80 }\PYG{c+c1}{// bit7}
+\PYG{c+cp}{\PYGZsh{}define STATUS\PYGZus{}WATER\PYGZus{}BIT 0x40  }\PYG{c+c1}{// bit6}
+\PYG{c+cp}{\PYGZsh{}define STATUS\PYGZus{}ALARM\PYGZus{}BIT 0x20  }\PYG{c+c1}{// bit5}
+\PYG{c+cp}{\PYGZsh{}define STATUS\PYGZus{}MANUAL\PYGZus{}BIT 0x10 }\PYG{c+c1}{// bit4}
+\PYG{c+c1}{// MASKE}
+\PYG{c+cp}{\PYGZsh{}define CMD\PYGZus{}TYPE\PYGZus{}MASK 0xE0  }\PYG{c+c1}{// Top 3 command bits}
+\PYG{c+cp}{\PYGZsh{}define CMD\PYGZus{}ID\PYGZus{}MASK 0x0F    }\PYG{c+c1}{// bottom 4 SLAVE ID bits}
+\PYG{c+cp}{\PYGZsh{}define CMD\PYGZus{}INOUT\PYGZus{}MASK 0x10 }\PYG{c+c1}{// bit4}
+\PYG{c+c1}{// ETHERNET}
+\PYG{c+cp}{\PYGZsh{}define MAC\PYGZus{}ADDR \PYGZob{}0x00, 0x14, 0xA5, 0x76, 0x19, 0x3f\PYGZcb{}}
+\PYG{c+cp}{\PYGZsh{}define IP\PYGZus{}ADDR \PYGZob{}10, 99, 12, 1\PYGZcb{}}
+\PYG{c+cp}{\PYGZsh{}define HTTP\PYGZus{}PORT 80}
+\PYG{c+c1}{// OBB MasterRecieve}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}IDLE 0x00}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}CMD\PYGZus{}BYTE 0x02}
+\PYG{c+cp}{\PYGZsh{}define BYTE\PYGZus{}ID\PYGZus{}STATUS\PYGZus{}BYTE 0x01}
+
+\end{Verbatim}

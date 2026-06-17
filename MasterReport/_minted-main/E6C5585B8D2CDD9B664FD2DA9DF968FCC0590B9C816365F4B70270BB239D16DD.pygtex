@@ -1,0 +1,51 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{init}\PYG{p}{()}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+
+\PYG{+w}{  }\PYG{n}{PIR1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mb}{0b00000000}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// flegovi prijema preko UART\PYGZhy{}a}
+\PYG{+w}{  }\PYG{n}{PIE1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mb}{0b00100001}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// dozvola prekida za UART, RCIE, TMR1IE}
+\PYG{+w}{  }\PYG{c+c1}{// PIE1.TMR1IE = 1;}
+\PYG{+w}{  }\PYG{c+c1}{// PIE1.RC1IE=1;}
+
+\PYG{+w}{  }\PYG{n}{T1CON}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mb}{0b10110000}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// konfiguracija za tajmer1}
+\PYG{+w}{  }\PYG{n}{T1CON}\PYG{p}{.}\PYG{n}{TMR1ON}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{  }\PYG{c+cm}{/*16\PYGZhy{}bit operation}
+\PYG{c+cm}{   preskaler 1:8}
+\PYG{c+cm}{   25MH T0=40ns}
+\PYG{c+cm}{   40ns*4*8=1.28us}
+\PYG{c+cm}{   25ms=25000us=1.28*19531=  B5B3 */}
+\PYG{+w}{  }\PYG{n}{TMR1L}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0xB5}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{TMR1H}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0xB3}\PYG{p}{;}
+
+\PYG{+w}{  }\PYG{n}{INTCON}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mb}{0b01000000}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// periferijski interapt}
+\PYG{+w}{  }\PYG{n}{INTCON}\PYG{p}{.}\PYG{n}{GIE}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}\PYG{+w}{      }\PYG{c+c1}{// globalna dozvola prekida}
+
+\PYG{+w}{  }\PYG{c+c1}{// svi pinovi na portu A su izlazi (vidi na semi)}
+\PYG{+w}{  }\PYG{n}{TRISA}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{  }\PYG{c+c1}{// obrati paznju, postoje tasteri na portovima RB0 \PYGZhy{} RB3, to su digitalni}
+\PYG{+w}{  }\PYG{c+c1}{// ulazi}
+\PYG{+w}{  }\PYG{n}{TRISB}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x0F}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// ostali pinovi PORTB su izlazi}
+\PYG{+w}{  }\PYG{n}{TRISC}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0xD0}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// 0b11010000; // ovo je OK}
+
+\PYG{+w}{  }\PYG{n}{PORTA}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{PORTB}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{PORTC}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+
+\PYG{+w}{  }\PYG{n}{ADCON0}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// iskljucujemo A/D konverziju}
+\PYG{+w}{  }\PYG{n}{ADCON1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x0F}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// svi digitalni}
+\PYG{+w}{  }\PYG{c+c1}{// PORTA.F0=0;}
+
+\PYG{+w}{  }\PYG{n}{UART1\PYGZus{}Init}\PYG{p}{(}\PYG{n}{UART\PYGZus{}BAUD\PYGZus{}RATE}\PYG{p}{);}
+
+\PYG{+w}{  }\PYG{c+c1}{// konfigurisemo brzinu od 19200 i dodatne bitove za serijski prenos}
+\PYG{+w}{  }\PYG{n}{TXSTA}\PYG{p}{.}\PYG{n}{TXEN}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{RCSTA}\PYG{p}{.}\PYG{n}{SPEN}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{RCSTA}\PYG{p}{.}\PYG{n}{CREN}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{  }\PYG{n}{SPI1\PYGZus{}Init\PYGZus{}Advanced}\PYG{p}{(}\PYG{n}{\PYGZus{}SPI\PYGZus{}MASTER\PYGZus{}OSC\PYGZus{}DIV64}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{\PYGZus{}SPI\PYGZus{}DATA\PYGZus{}SAMPLE\PYGZus{}MIDDLE}\PYG{p}{,}
+\PYG{+w}{                     }\PYG{n}{\PYGZus{}SPI\PYGZus{}CLK\PYGZus{}IDLE\PYGZus{}LOW}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{\PYGZus{}SPI\PYGZus{}LOW\PYGZus{}2\PYGZus{}HIGH}\PYG{p}{);}
+\PYG{+w}{  }\PYG{n}{SPI\PYGZus{}Ethernet\PYGZus{}Init}\PYG{p}{(}\PYG{n}{myMacAddr}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{myIpAddr}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{SPI\PYGZus{}Ethernet\PYGZus{}FULLDUPLEX}\PYG{p}{);}
+\PYG{+w}{  }\PYG{n}{Lcd\PYGZus{}Init}\PYG{p}{();}
+\PYG{+w}{  }\PYG{n}{Lcd\PYGZus{}Cmd}\PYG{p}{(}\PYG{n}{\PYGZus{}LCD\PYGZus{}CLEAR}\PYG{p}{);}
+\PYG{+w}{  }\PYG{n}{Lcd\PYGZus{}Cmd}\PYG{p}{(}\PYG{n}{\PYGZus{}LCD\PYGZus{}CURSOR\PYGZus{}OFF}\PYG{p}{);}
+\PYG{+w}{  }\PYG{c+c1}{// UpdateLCD();}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

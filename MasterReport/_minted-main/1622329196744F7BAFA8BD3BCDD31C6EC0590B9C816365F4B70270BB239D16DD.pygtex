@@ -1,0 +1,87 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{interrupt}\PYG{p}{()}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{((}\PYG{n}{PIE1}\PYG{p}{.}\PYG{n}{TMR1IE}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{PIR1}\PYG{p}{.}\PYG{n}{TMR1IF}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{c+c1}{// prekid tajmera 1 \PYGZhy{}  na svakih 25ms PIE1.TMR1IE = 1;}
+\PYG{+w}{    }\PYG{n}{PIR1}\PYG{p}{.}\PYG{n}{TMR1IF}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{brojac}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mh}{0x04}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{c+c1}{// na svakih 125ms prozivka slejvova}
+\PYG{+w}{      }\PYG{n}{brojac}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x00}\PYG{p}{;}
+\PYG{+w}{      }\PYG{n}{Flag1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0x01}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{      }\PYG{n}{brojac}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{c+c1}{// 25ms}
+
+\PYG{+w}{    }\PYG{c+c1}{// B.J. neka bude ovako}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{btnCnt}\PYG{+w}{ }\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}
+\PYG{+w}{      }\PYG{n}{btnCnt}\PYG{o}{\PYGZhy{}\PYGZhy{}}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{c+c1}{// B.J. ovo je greska}
+\PYG{+w}{    }\PYG{c+c1}{// B.J. stavljaj zagrade svuda}
+\PYG{+w}{    }\PYG{c+c1}{// drugaciji je prioritet operacija}
+
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{((}\PYG{n}{ButtonInc}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{btnCnt}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{))}
+\PYG{+w}{    }\PYG{c+c1}{// B.J. bilo: if ((ButtonInc == 1) \PYGZam{}\PYGZam{} btnCnt == 0)}
+\PYG{+w}{    }\PYG{p}{\PYGZob{}}
+\PYG{+w}{      }\PYG{n}{btnCnt}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// 20*25=500ms}
+\PYG{+w}{      }\PYG{n}{updateLCDFlag}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{cntDisp}\PYG{+w}{ }\PYG{o}{\PYGZgt{}=}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{cntDisp}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{cntDisp}\PYG{o}{++}\PYG{p}{;}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{c+c1}{// B.J. ovo je greska}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{((}\PYG{n}{ButtonDec}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{btnCnt}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{))}
+\PYG{+w}{    }\PYG{c+c1}{// if ((ButtonDec == 1) \PYGZam{}\PYGZam{} btnCnt == 0)}
+\PYG{+w}{    }\PYG{p}{\PYGZob{}}
+\PYG{+w}{      }\PYG{n}{btnCnt}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// 20*25=500ms}
+\PYG{+w}{      }\PYG{n}{updateLCDFlag}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{cntDisp}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{cntDisp}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{p}{;}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{cntDisp}\PYG{o}{\PYGZhy{}\PYGZhy{}}\PYG{p}{;}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{c+c1}{// B.J.}
+\PYG{+w}{    }\PYG{c+c1}{// else if (btnCnt \PYGZgt{} 0)}
+\PYG{+w}{    }\PYG{c+c1}{//\PYGZob{}}
+\PYG{+w}{    }\PYG{c+c1}{//  btnCnt\PYGZhy{}\PYGZhy{};}
+\PYG{+w}{    }\PYG{c+c1}{//\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{n}{TMR1L}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0xB5}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{TMR1H}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mh}{0xB3}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{/// reset tajmera}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{((}\PYG{n}{PIE1}\PYG{p}{.}\PYG{n}{RCIE}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{PIR1}\PYG{p}{.}\PYG{n}{RCIF}\PYG{p}{))}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{c+c1}{// UART RECIEVE FROM SLAVE}
+\PYG{+w}{    }\PYG{k+kt}{unsigned}\PYG{+w}{ }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{ch}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{PIR1}\PYG{p}{.}\PYG{n}{RCIF}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// Recieve flag na 0}
+\PYG{+w}{    }\PYG{n}{ch}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{RCREG}\PYG{p}{;}\PYG{+w}{    }\PYG{c+c1}{// prima se bajt preko UART\PYGZhy{}a}
+
+\PYG{+w}{    }\PYG{k}{switch}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{ByteID}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k}{case}\PYG{+w}{ }\PYG{n+no}{BYTE\PYGZus{}ID\PYGZus{}IDLE}\PYG{p}{:}
+\PYG{+w}{      }\PYG{k}{break}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{case}\PYG{+w}{ }\PYG{n+no}{BYTE\PYGZus{}ID\PYGZus{}CMD\PYGZus{}BYTE}\PYG{p}{:}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{((}\PYG{n}{ch}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{+w}{ }\PYG{n}{CMD\PYGZus{}TYPE\PYGZus{}MASK}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{STATUS\PYGZus{}CODE}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{((}\PYG{n}{ch}\PYG{+w}{ }\PYG{o}{\PYGZam{}}\PYG{+w}{ }\PYG{n}{CMD\PYGZus{}ID\PYGZus{}MASK}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{          }\PYG{n}{Comm}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{          }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}STATUS\PYGZus{}BYTE}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{          }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}IDLE}\PYG{p}{;}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}IDLE}\PYG{p}{;}
+\PYG{+w}{      }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{      }\PYG{k}{break}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{case}\PYG{+w}{ }\PYG{n+no}{BYTE\PYGZus{}ID\PYGZus{}STATUS\PYGZus{}BYTE}\PYG{p}{:}
+\PYG{+w}{      }\PYG{n}{Status1}\PYG{p}{[}\PYG{n}{SLAVE\PYGZus{}ID}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{ch}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// SWAM0000}
+\PYG{+w}{      }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}IDLE}\PYG{p}{;}
+\PYG{+w}{      }\PYG{k}{break}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k}{default}\PYG{o}{:}
+\PYG{+w}{      }\PYG{n}{ByteID}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{BYTE\PYGZus{}ID\PYGZus{}IDLE}\PYG{p}{;}
+\PYG{+w}{      }\PYG{k}{break}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

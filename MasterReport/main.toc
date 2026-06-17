@@ -2,13 +2,24 @@
 \contentsline {section}{\numberline {2}Funkcionalna i nefunkcionalna specifikacija}{3}{}%
 \contentsline {section}{\numberline {3}Arhitektura sistema}{4}{}%
 \contentsline {section}{\numberline {4}Realizacija komunikacionog protokola}{5}{}%
-\contentsline {subsection}{\numberline {4.1}Komunikacija izmedju Master i Slejv automata}{5}{}%
-\contentsline {subsection}{\numberline {4.2}Komunikacija izmedju Master automata i Centralnog Računarskog sistema}{5}{}%
-\contentsline {section}{\numberline {5}Hardverska Realizacija automata}{6}{}%
-\contentsline {subsection}{\numberline {5.1}Prikaz sadržaja displeja Master automata}{6}{}%
-\contentsline {section}{\numberline {6}Realizacija firmvera Master automata}{7}{}%
-\contentsline {subsection}{\numberline {6.1}Detaljan opis najvažnijih funkcija sa segmentima koda}{7}{}%
-\contentsline {section}{\numberline {7}Postupak verifikacije i vrednovanja koda }{8}{}%
-\contentsline {subsection}{\numberline {7.1}Rezultat rada sistema}{8}{}%
-\contentsline {subsection}{\numberline {7.2}Stepen ispunjenosti korisničkih zahteva}{8}{}%
-\contentsline {section}{\numberline {8}Detaljno upustvo za upotrebu}{9}{}%
+\contentsline {subsection}{\numberline {4.1}Komunikacija između Master i Slejv automata}{5}{}%
+\contentsline {subsection}{\numberline {4.2}Komunikacija između Master automata i Centralnog Računarskog sistema}{6}{}%
+\contentsline {section}{\numberline {5}Hardverska Realizacija automata}{7}{}%
+\contentsline {subsection}{\numberline {5.1}Šema Master automata}{7}{}%
+\contentsline {subsection}{\numberline {5.2}Prikaz sadržaja displeja Master automata}{9}{}%
+\contentsline {subsection}{\numberline {5.3}Hardverska realizacija Slejv automata}{10}{}%
+\contentsline {section}{\numberline {6}Realizacija firmvera Master automata}{11}{}%
+\contentsline {subsection}{\numberline {6.1}Detaljan opis najvažnijih funkcija sa segmentima koda}{14}{}%
+\contentsline {section}{\numberline {7}Realizacija firmvera Slejv automata}{22}{}%
+\contentsline {subsection}{\numberline {7.1}Definicija pinova i deklaracija promenljivih}{22}{}%
+\contentsline {subsection}{\numberline {7.2}Korišćene funkcije}{23}{}%
+\contentsline {subsection}{\numberline {7.3}Inicijalizacija}{23}{}%
+\contentsline {subsection}{\numberline {7.4}Obrada prekida}{23}{}%
+\contentsline {subsection}{\numberline {7.5}Glavna petlja i logika zalivanja}{24}{}%
+\contentsline {subsection}{\numberline {7.6}Nadzor protoka i alarm}{24}{}%
+\contentsline {subsection}{\numberline {7.7}LCD prikaz Slejv automata}{24}{}%
+\contentsline {section}{\numberline {8}Postupak verifikacije i vrednovanja koda }{25}{}%
+\contentsline {subsection}{\numberline {8.1}Rezultat rada sistema}{25}{}%
+\contentsline {subsection}{\numberline {8.2}Stepen ispunjenosti korisničkih zahteva}{25}{}%
+\contentsline {section}{\numberline {9}Detaljno uputstvo za upotrebu}{26}{}%
+\contentsline {section}{\numberline {10}Appendix}{27}{}%

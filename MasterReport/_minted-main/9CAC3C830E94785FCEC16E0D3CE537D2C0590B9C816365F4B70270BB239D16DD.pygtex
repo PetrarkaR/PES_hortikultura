@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{void}\PYG{+w}{ }\PYG{n+nf}{transmit}\PYG{p}{(}\PYG{k+kt}{unsigned}\PYG{+w}{ }\PYG{k+kt}{char}\PYG{+w}{ }\PYG{n}{DATA8b}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{n}{TXREG}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{DATA8b}\PYG{p}{;}
+\PYG{+w}{  }\PYG{k}{while}\PYG{+w}{ }\PYG{p}{(}\PYG{o}{!}\PYG{n}{TXSTA}\PYG{p}{.}\PYG{n}{TRMT}\PYG{p}{)}
+\PYG{+w}{    }\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}
