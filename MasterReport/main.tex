@@ -13,7 +13,7 @@
 \graphicspath{{./images/}}
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{ragged2e}
-\usepackage{minted2}
+\usepackage{minted}
 \usepackage{verbatim}
 
 %compile with latexmk -lualatex -shell-escape main.tex
@@ -315,31 +315,29 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
 
 \clearpage
 
-\subsection{Hardverska realizacija Slejv automata}
-  Slejv automat je realizovan na razvojnoj ploči sa mikrokontrolerom PIC16F877A. 
-  Mikrokontroler radi na taktu od 20 MHz i napajanju od 5 V, a u okviru sistema koristi digitalne ulaze i izlaze, UART komunikaciju, Tajmer 1, A/D konvertor i 16x2 LCD displej. 
-  Slejv je postavljen kod pumpe za zalivanje i zadužen je za lokalno upravljanje pumpom, očitavanje senzora protoka, prikaz stanja na displeju i komunikaciju sa Master automatom.
+\subsection{Šema Slejv automata}
+  Električna šema Slejv automata sastoji se od razvojne ploče sa mikrokontrolerom PIC16F877A, RS-232/RS485 komunikacionog interfejsa, 16x2 LCD displeja, tastera za manuelno zalivanje, tastera za resetovanje lokalnog stanja, analognog ulaza za senzor protoka i indikacionih izlaza za stanje sistema, rad pumpe i alarm.
+  Slejv automat je postavljen kod pumpe za zalivanje i zadužen je za lokalno upravljanje pumpom, očitavanje senzora protoka, prikaz stanja na displeju i komunikaciju sa Master automatom.
 
-  Najvažniji elementi Slejv automata su:
-  \begin{itemize}
-    \item{mikrokontroler PIC16F877A,}
-    \item{RS-232/RS485 komunikacioni drajveri,}
-    \item{16x2 LCD displej,}
-    \item{blok za napajanje razvojne ploče,}
-    \item{konektor za programiranje mikrokontrolera,}
-    \item{taster za manuelno pokretanje ili zaustavljanje zalivanja,}
-    \item{taster za resetovanje lokalnog stanja,}
-    \item{analogni ulaz za senzor protoka,}
-    \item{LED indikatori za stanje sistema, zalivanje i alarm,}
-    \item{prekidači za podešavanje ID broja Slejv automata.}
-  \end{itemize}
-
-  Kao i u korišćenim razvojnim sistemima iz vežbi, izbor između RS-232 i RS485 veze vrši se kratkospojnicima na ploči. 
+  Za Slejv automat izabran je PIC16F877A, jer obezbeđuje dovoljan broj digitalnih ulaza i izlaza, UART komunikaciju, Tajmer 1, A/D konvertor i paralelno povezivanje LCD displeja.
+  Mikrokontroler radi na taktu od 20 MHz i napajanju od 5 V.
+  Kao i kod Master automata, serijska komunikacija koristi UART modul, dok se izbor između RS-232 i RS485 veze vrši kratkospojnicima na razvojnoj ploči.
   RS-232 je pogodan za razvoj i testiranje sa jednim uređajem na malom rastojanju, dok se u normalnom radu sistema koristi RS485, jer omogućava povezivanje većeg broja Slejv automata na zajedničku magistralu.
+
+  \begin{figure}[ht]
+    \centering
+    \IfFileExists{images/SlejvSema.pdf}
+      {\includegraphics[width=1.1\textwidth]{SlejvSema.pdf}}
+      {\fbox{\begin{minipage}[c][5cm][c]{0.9\textwidth}\centering
+        Dodati sliku \texttt{images/SlejvSema.pdf}: električna šema Slejv automata.
+      \end{minipage}}}
+    \caption{Električna šema Slejv automata}
+  \end{figure}
 
   Raspored korišćenih pinova u realizovanom firmveru prikazan je u tabeli:
 
-  \begin{center}
+  \begin{figure}[ht]
+  \centering
   \small
   \begin{tabular}{|m{3cm}|m{2cm}|m{8cm}|}
     \hline
@@ -358,11 +356,27 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
     \texttt{PORTC.F0} & izlaz & \texttt{RS} kontrolni signal LCD displeja \\ \hline
     \texttt{PORTC.F2} & izlaz & \texttt{EN} kontrolni signal LCD displeja \\ \hline
   \end{tabular}
-  \end{center}
+  \caption{Tabela portova mikrokontrolera Slejv automata}
+  \end{figure}
   \normalsize
 
-  Na LCD displeju Slejv automata prikazuju se podaci potrebni za lokalni nadzor rada pumpe. 
-  Prvi red sadrži trenutno vreme i očitanu vrednost protoka, u obliku:
+  \begin{figure}[ht]
+    \centering
+    \IfFileExists{images/SlejvTopOverlay.pdf}
+      {\includegraphics[width=1.1\textwidth]{SlejvTopOverlay.pdf}}
+      {\fbox{\begin{minipage}[c][5cm][c]{0.9\textwidth}\centering
+        Dodati sliku \texttt{images/SlejvTopOverlay.pdf}: top overlay Slejv automata.
+      \end{minipage}}}
+    \caption{Top overlay Slejv automata}
+  \end{figure}
+
+\clearpage
+
+  \subsection{Prikaz sadržaja displeja Slejv automata}
+  Slejv automat sadrži 16x2 LCD displej na kome se prikazuju podaci potrebni za lokalni nadzor rada pumpe.
+  Za razliku od Master automata, koji prikazuje programe i status svih bašti, Slejv prikazuje samo stanje lokalne bašte: trenutno vreme, protok, alarm, manuelni režim, vreme početka programa i preostalo vreme zalivanja.
+
+  Prvi red displeja sadrži trenutno vreme i očitanu vrednost protoka:
   \[
     \texttt{T HH:MM:SS Fxxx}
   \]
@@ -370,8 +384,20 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
   \[
     \texttt{AM S:HH:MM RMM:SS}
   \]
-  Karakter \texttt{A} označava aktivan alarm, a karakter \texttt{M} manuelni režim. 
+  Karakter \texttt{A} označava aktivan alarm, a karakter \texttt{M} manuelni režim.
   Kada odgovarajuće stanje nije aktivno, na tom mestu se prikazuje znak \texttt{/}.
+  Oznaka \texttt{S} označava vreme početka zadatog programa zalivanja, dok oznaka \texttt{R} označava preostalo vreme rada pumpe.
+  Vrednost protoka se prikazuje kao trocifren broj iza oznake \texttt{F}.
+
+  \begin{figure}[ht]
+    \centering
+    \IfFileExists{images/screenshot.png}
+      {\includegraphics[width=0.7\textwidth]{screenshot}}
+      {\fbox{\begin{minipage}[c][3cm][c]{0.45\textwidth}\centering
+        \texttt{screenshot.png}
+      \end{minipage}}}
+    \caption{Format prikaza Slejv displeja}
+  \end{figure}
 
 
 \section{Realizacija firmvera Master automata}
@@ -875,13 +901,15 @@ void main(void) {
 \section{Realizacija firmvera Slejv automata}
   Firmver Slejv automata napisan je za mikroC kompajler i kontroler PIC16F877A. 
   Osnovna uloga firmvera je da lokalno upravlja procesom zalivanja i da Master automatu u svakom trenutku može da vrati ažuran status sistema. 
-  Zbog toga je program podeljen na inicijalizaciju periferija, obradu prekida, obradu korisničkih ulaza, komunikaciju i glavnu logiku zalivanja.
+  Kod za firmver se sastoji od funkcija za inicijalizaciju registara mikrokontrolera, inicijalizaciju globalnih promenljivih, obrade prekida, obrade tastera, komunikacije sa Master automatom, formiranja statusnog bajta, ispisa na LCD i glavne funkcije.
+  U nastavku su date tabele makroa, pinova, promenljivih i funkcija, a zatim i objašnjenja najvažnijih funkcionalnih celina.
 
   \subsection{Definicija pinova i deklaracija promenljivih}
-  Na početku programa definisane su simboličke oznake za ulaze i izlaze koji se koriste u kodu. 
+  Na početku programa definisane su simboličke oznake za ulaze i izlaze koji se koriste u kodu.
   Time se izbegava direktno korišćenje brojeva pinova u ostatku programa i olakšava se povezivanje opisa firmvera sa električnom šemom razvojne ploče.
 
-  \begin{center}
+  \begin{figure}[ht]
+  \centering
   \small
   \begin{tabular}{|m{3.5cm}|m{3cm}|m{6.5cm}|}
     \hline
@@ -891,19 +919,27 @@ void main(void) {
     \texttt{PinSystemOn} & \texttt{PORTA.F2} & Izlazna indikacija da je sistem uključen \\ \hline
     \texttt{PinWatering} & \texttt{PORTA.F3} & Izlazna indikacija rada pumpe \\ \hline
     \texttt{PinAlarm} & \texttt{PORTA.F4} & Izlazna indikacija alarma protoka \\ \hline
-    \texttt{DR} & \texttt{PORTC.F5} & Upravljanje smerom RS-232 drajvera \\ \hline
+    \texttt{DR} & \texttt{PORTC.F5} & Upravljanje smerom RS485 drajvera \\ \hline
+    \texttt{DEBOUNCE\_TICKS} & \texttt{10} & Broj tajmerskih intervala za zaštitu od treperenja tastera \\ \hline
   \end{tabular}
-  \end{center}
+  \caption{Tabela makroa i pinova Slejv firmvera}
+  \end{figure}
   \normalsize
 
-  \begin{center}
+  Data je tabela najvažnijih globalnih promenljivih korišćenih u Slejv firmveru.
+
+  \begin{figure}[ht]
+  \centering
   \small
-  \begin{tabular}{|m{3.6cm}|m{3cm}|m{7cm}|}
+  \begin{tabular}{|m{3.6cm}|m{3cm}|m{6.8cm}|}
     \hline
     Promenljiva & Tip & Opis \\ \hline
     \texttt{GARDEN\_ID} & \texttt{unsigned char} & ID broj Slejv automata, očitava se sa \texttt{PORTD.F0-F3} \\ \hline
+    \texttt{ByteID} & \texttt{unsigned char} & Stanje prijema poruke preko UART-a \\ \hline
     \texttt{Hours}, \texttt{Minutes}, \texttt{Seconds} & \texttt{unsigned char} & Trenutno vreme dobijeno dekodovanjem BCD cifara \\ \hline
     \texttt{ProgStartHour}, \texttt{ProgStartMin} & \texttt{unsigned char} & Vreme početka automatskog zalivanja \\ \hline
+    \texttt{Tmp\_ProgStartHour}, \texttt{Tmp\_ProgStartMin} & \texttt{unsigned char} & Privremeno primljene vrednosti vremena početka programa \\ \hline
+    \texttt{time\_left\_high}, \texttt{time\_left\_low} & \texttt{unsigned char} & Primljene cifre trajanja zalivanja \\ \hline
     \texttt{WateringSec} & \texttt{unsigned int} & Preostalo vreme zalivanja u sekundama \\ \hline
     \texttt{FlowValue} & \texttt{unsigned char} & Trenutno očitana vrednost senzora protoka \\ \hline
     \texttt{FlowMin}, \texttt{FlowMax} & \texttt{unsigned char} & Minimalna i maksimalna dozvoljena vrednost protoka \\ \hline
@@ -914,11 +950,17 @@ void main(void) {
     \texttt{UpdateLCDFlag} & \texttt{bit} & Označava periodično osvežavanje LCD displeja i logike zalivanja \\ \hline
     \texttt{m\_bSystemOn}, \texttt{m\_bWatering}, \texttt{m\_bAlarm} & \texttt{bit} & Interna stanja koja se pakuju u statusni bajt \\ \hline
   \end{tabular}
-  \end{center}
+  \caption{Tabela globalnih promenljivih Slejv firmvera}
+  \end{figure}
   \normalsize
 
+  \clearpage
+
   \subsection{Korišćene funkcije}
-  \begin{center}
+  Ispod je tabela svih funkcija koje nose rad Slejv automata. Kao i kod Master firmvera, posle tabele su izdvojene najvažnije funkcije i delovi koda.
+
+  \begin{figure}[ht]
+  \centering
   \small
   \begin{tabular}{|m{3.8cm}|m{3cm}|m{6.8cm}|}
     \hline
@@ -931,26 +973,145 @@ void main(void) {
     \texttt{DecodeTime()} & \texttt{void} & Pretvara BCD cifre sata u promenljive \texttt{Hours}, \texttt{Minutes} i \texttt{Seconds} \\ \hline
     \texttt{ReadADC()} & \texttt{unsigned char} & Pokreće A/D konverziju i vraća vrednost protoka iz registra \texttt{ADRESH} \\ \hline
     \texttt{buildStatusByte()} & \texttt{unsigned char} & Formira statusni bajt koji Slejv šalje Masteru \\ \hline
+    \texttt{toBcd()} & \texttt{unsigned char} & Konvertuje decimalnu vrednost u BCD format za poređenje vremena \\ \hline
+    \texttt{ConvertTime()} & \texttt{void} & Razdvaja primljenu decimalnu vrednost vremena na desetice i jedinice \\ \hline
+    \texttt{LcdOut2()}, \texttt{LcdOut3()} & \texttt{void} & Formatiraju dvocifrene i trocifrene vrednosti za LCD \\ \hline
+    \texttt{LcdOutDuration()} & \texttt{void} & Prikazuje preostalo vreme zalivanja u formatu \texttt{MM:SS} \\ \hline
     \texttt{UpdateLCD()} & \texttt{void} & Ispisuje trenutno vreme, protok, alarme, program i preostalo vreme zalivanja \\ \hline
     \texttt{transmit()} & \texttt{void} & Šalje jedan bajt preko UART predajnika \\ \hline
+    \texttt{main()} & \texttt{void} & Glavna funkcija programa u kojoj se obrađuju događaji i upravlja pumpom \\ \hline
   \end{tabular}
-  \end{center}
+  \caption{Tabela funkcija Slejv firmvera}
+  \end{figure}
   \normalsize
 
-  \subsection{Inicijalizacija}
-  Funkcija \texttt{init()} podešava hardver Slejv automata. 
-  Port A se delimično koristi za analogni ulaz senzora protoka, a delimično za izlazne indikacije. 
-  Port B je podešen kao ulaz za tastere, port C sadrži UART linije, LCD kontrolne linije i \texttt{DR} signal RS-232 drajvera, dok se port D koristi i za ID uređaja i za podatke LCD displeja.
+  \clearpage
+
+  \subsection{Detaljan opis najvažnijih funkcija sa segmentima koda}
+  \textbf{Funkcija init\_variables} služi za inicijalizaciju varijabli Slejv automata na podrazumevane vrednosti.
+  U početnom stanju brišu se flegovi za komunikaciju i tastere, vreme se postavlja na nulu, pumpa i alarm se gase, a sistemska indikacija se uključuje.
+  \begin{minted}{C}
+void init_variables()
+{
+   GARDEN_ID = 0x00;
+   ByteID = 0x00;
+   ch = 0x00;
+   Command = 0x00;
+   Counter = 0x00;
+   Counter2 = 0x00;
+   cntManual = 0x00;
+   cntReset = 0x00;
+
+   CallFlag = 0;
+   RTCSetupFlag = 0;
+   UpdateLCDFlag = 0;
+   ProgramSetupFlag = 0;
+   ManualMode = 0;
+   ManualEvent = 0;
+   ResetEvent = 0;
+
+   WateringSec = 0;
+   ProgStartHour = 0x00;
+   ProgStartMin = 0x00;
+   PinSystemOn = 1;
+   PinWatering = 0;
+   PinAlarm = 0;
+
+   m_bSystemOn = 0;
+   m_bWatering = 0;
+   m_bAlarm = 0;
+}
+  \end{minted}
+
+  \textbf{Funkcija init} podešava hardver Slejv automata.
+  Port A se delimično koristi za analogni ulaz senzora protoka, a delimično za izlazne indikacije.
+  Port B je podešen kao ulaz za tastere, port C sadrži UART linije, LCD kontrolne linije i \texttt{DR} signal RS485 drajvera, dok se port D koristi i za ID uređaja i za podatke LCD displeja.
 
   A/D konvertor je uključen preko registara \texttt{ADCON0} i \texttt{ADCON1}. 
   Rezultat konverzije se koristi kao osmobitna vrednost protoka, tako što se čita registar \texttt{ADRESH}. 
   Tajmer 1 se podešava tako da prekid nastaje na svakih 100 ms. 
   Početne vrednosti \texttt{TMR1H = 0x0B} i \texttt{TMR1L = 0xDC} odgovaraju intervalu od 100 ms za takt mikrokontrolera od 20 MHz i preskaler 1:8. 
   UART se inicijalizuje na 19200 bps, a zatim se dozvoljavaju prekidi Tajmera 1 i prijema preko UART-a.
+  \begin{minted}{C}
+void init()
+{
+   TRISA = 0x03;
+   TRISB = 0x3F;
+   TRISC = 0xC0;
+   TRISD = 0x0F;
 
-  \subsection{Obrada prekida}
-  Funkcija \texttt{interrupt()} ima dve glavne grane. 
-  Prva obrađuje prekid Tajmera 1. 
+   ADCON1 = 0b00001110;
+   ADCON0 = 0b10000001;
+
+   T1CON = 0b00110000;
+   TMR1H = 0x0B;
+   TMR1L = 0xDC;
+   T1CON.TMR1ON = 1;
+
+   PIR1.TMR1IF = 0;
+   PIE1.TMR1IE = 1;
+
+   Uart1_Init(19200);
+   TXSTA.TXEN = 1;
+   RCSTA.SPEN = 1;
+   RCSTA.CREN = 1;
+   PIE1.RCIE = 1;
+
+   INTCON.GIE = 1;
+}
+  \end{minted}
+
+  \textbf{Funkcija ProcessInputs} obrađuje taster za manuelno zalivanje i taster za resetovanje lokalnog stanja.
+  Oba tastera imaju debounce zaštitu preko brojača koji se smanjuju na svakom prekidu Tajmera 1.
+  Kada se registruje validan pritisak, funkcija ne izvršava kompletnu akciju odmah, već postavlja odgovarajući događaj koji kasnije obrađuje glavna petlja.
+  \begin{minted}{C}
+void ProcessInputs()
+{
+   if (cntManual > 0)
+      cntManual--;
+   if (PinTaster == 0)
+      TMP_Taster1 = 0;
+   if ((cntManual == 0) && (TMP_Taster1 == 0) && (PinTaster == 1))
+   {
+      TMP_Taster1 = 1;
+      cntManual = DEBOUNCE_TICKS;
+      ManualMode = !ManualMode;
+      ManualEvent = 1;
+   }
+
+   if (cntReset > 0)
+      cntReset--;
+   if (PinReset == 0)
+      TMP_Reset1 = 0;
+   if ((cntReset == 0) && (TMP_Reset1 == 0) && (PinReset == 1))
+   {
+      TMP_Reset1 = 1;
+      cntReset = DEBOUNCE_TICKS;
+      ResetEvent = 1;
+   }
+}
+  \end{minted}
+
+  \textbf{Funkcija buildStatusByte} formira statusni bajt koji Slejv vraća Master automatu.
+  Redosled bita odgovara protokolu opisanom u poglavlju komunikacije: \texttt{S}, \texttt{W}, \texttt{A} i \texttt{M} zauzimaju četiri najviša bita statusnog bajta.
+  \begin{minted}{C}
+unsigned char buildStatusByte()
+{
+   unsigned char status = 0x00;
+   if (m_bSystemOn)
+      status |= STATUS_SYSTEM_BIT;
+   if (m_bWatering)
+      status |= STATUS_WATER_BIT;
+   if (m_bAlarm)
+      status |= STATUS_ALARM_BIT;
+   if (ManualMode)
+      status |= STATUS_MANUAL_BIT;
+   return status;
+}
+  \end{minted}
+
+  \textbf{Funkcija interrupt} ima dve glavne grane.
+  Prva obrađuje prekid Tajmera 1.
   Pošto tajmer generiše prekid na svakih 100 ms, brojač \texttt{Counter} se koristi da se posle deset intervala dobije period od jedne sekunde. 
   Tada se pozivaju \texttt{IncrementTime()} i \texttt{DecodeTime()}, a \texttt{UpdateLCDFlag} se postavlja na jedinicu. 
   U svakom tajmerskom prekidu poziva se i \texttt{ProcessInputs()}, čime se tasteri očitavaju dovoljno često da se pouzdano detektuje pritisak.
@@ -964,9 +1125,57 @@ void main(void) {
     \item{\texttt{ProgramSetupFlag} za prihvatanje novog programa zalivanja.}
   \end{itemize}
   Na ovaj način se u prekidu radi samo prijem i osnovno dekodovanje poruke, dok se duža obrada prebacuje u glavnu petlju.
+  \begin{minted}{C}
+void interrupt()
+{
+   GARDEN_ID = PORTD & 0x0F;
 
-  \subsection{Glavna petlja i logika zalivanja}
-  Funkcija \texttt{main()} najpre poziva inicijalizacione funkcije za registre, promenljive i LCD, a zatim ulazi u beskonačnu petlju. 
+   if ((PIE1.TMR1IE) && (PIR1.TMR1IF))
+   {
+      PIR1.TMR1IF = 0;
+      if (Counter == 9)
+      {
+         Counter = 0;
+         IncrementTime();
+         DecodeTime();
+         UpdateLCDFlag = 1;
+      }
+      else
+         Counter++;
+
+      if (Counter2 > 0)
+         Counter2--;
+
+      ProcessInputs();
+      TMR1H = 0x0B;
+      TMR1L = 0xDC;
+   }
+
+   if ((PIE1.RCIE) && (PIR1.RCIF))
+   {
+      ch = RCREG;
+      if (ByteID == 0x00)
+      {
+         if (((ch & 0x0F) == GARDEN_ID) && ((ch & 0xE0) == 0xA0))
+         {
+            ByteID = 0x08;
+            Counter2 = 4;
+         }
+         else if (ch == 0x7F)
+         {
+            ByteID = 0x03;
+            Counter2 = 3;
+         }
+         else if (((ch & 0x0F) == GARDEN_ID) && ((ch & 0xE0) == 0x20))
+         {
+            CallFlag = 1;
+         }
+      }
+   }
+}
+  \end{minted}
+
+  \textbf{Funkcija main} najpre poziva inicijalizacione funkcije za registre, promenljive i LCD, a zatim ulazi u beskonačnu petlju.
   U petlji se proveravaju flegovi koje su postavili prekidi i korisnički ulazi.
 
   Reset događaj zaustavlja zalivanje, briše manuelni režim, gasi alarm i vraća sistem u osnovno uključeno stanje. 
@@ -986,20 +1195,99 @@ void main(void) {
   Tada se preostalo vreme zalivanja postavlja na trajanje primljeno od Master automata, aktivira se izlaz pumpe i postavlja se status da je zalivanje u toku. 
   Svake sekunde se \texttt{WateringSec} smanjuje za jedan. 
   Kada dostigne nulu, izlaz pumpe se gasi i Slejv prelazi u stanje čekanja sledećeg programa ili manuelne komande.
+  \begin{minted}{C}
+if (UpdateLCDFlag == 1)
+{
+   UpdateLCDFlag = 0;
 
-  \subsection{Nadzor protoka i alarm}
+   if ((m_bWatering == 0) &&
+       (Seconds == 0x00) &&
+       (Hours == ProgStartHour) &&
+       (Minutes == ProgStartMin))
+   {
+      WateringSec = (unsigned int)((time_left_high * 100) + time_left_low);
+      m_bWatering = 1;
+      PinWatering = 1;
+      m_bSystemOn = 1;
+      PinSystemOn = 1;
+   }
+
+   if (m_bWatering == 1)
+   {
+      if (WateringSec > 0)
+         WateringSec--;
+      if (WateringSec == 0)
+      {
+         m_bWatering = 0;
+         PinWatering = 0;
+         ManualMode = 0;
+      }
+   }
+}
+  \end{minted}
+
+  \textbf{Nadzor protoka i alarm}
   Vrednost senzora protoka očitava se funkcijom \texttt{ReadADC()}. 
   Alarm se proverava samo dok je zalivanje aktivno. 
   Ako je očitana vrednost manja od \texttt{FlowMin} ili veća od \texttt{FlowMax}, postavljaju se \texttt{PinAlarm} i \texttt{m\_bAlarm}. 
   U suprotnom se alarm gasi. 
   U implementiranoj verziji početne granice su \texttt{FlowMin = 20} i \texttt{FlowMax = 60}. 
   Time se detektuju i kvarovi sa premalim protokom, na primer zapušeno crevo ili prazna posuda, i stanja sa prevelikim protokom, na primer pucanje cevi.
+  \begin{minted}{C}
+FlowValue = ReadADC();
 
-  \subsection{LCD prikaz Slejv automata}
-  Funkcija \texttt{UpdateLCD()} osvežava oba reda displeja. 
-  Prvi red prikazuje tekuće vreme i trenutnu vrednost protoka. 
-  Drugi red prikazuje alarm, manuelni režim, vreme početka programa i preostalo vreme do gašenja pumpe. 
+if (m_bWatering == 1)
+{
+   if ((FlowValue < FlowMin) || (FlowValue > FlowMax))
+   {
+      PinAlarm = 1;
+      m_bAlarm = 1;
+   }
+   else
+   {
+      PinAlarm = 0;
+      m_bAlarm = 0;
+   }
+}
+else
+{
+   PinAlarm = 0;
+   m_bAlarm = 0;
+}
+  \end{minted}
+
+  \textbf{Funkcija UpdateLCD} osvežava oba reda displeja.
+  Prvi red prikazuje tekuće vreme i trenutnu vrednost protoka.
+  Drugi red prikazuje alarm, manuelni režim, vreme početka programa i preostalo vreme do gašenja pumpe.
   Preostalo vreme se prikazuje u formatu minuta i sekundi pomoću funkcije \texttt{LcdOutDuration()}.
+  \begin{minted}{C}
+void UpdateLCD()
+{
+   Lcd_Out(1, 1, "T ");
+   Lcd_Chr(1, 3,  Hour_X10 + '0');
+   Lcd_Chr(1, 4,  Hour_X1  + '0');
+   Lcd_Chr(1, 5,  ':');
+   Lcd_Chr(1, 6,  Min_X10  + '0');
+   Lcd_Chr(1, 7,  Min_X1   + '0');
+   Lcd_Chr(1, 8,  ':');
+   Lcd_Chr(1, 9,  Sec_X10  + '0');
+   Lcd_Chr(1, 10, Sec_X1   + '0');
+   Lcd_Out(1, 12, "F");
+   LcdOut3(1, 13, FlowValue);
+
+   if (m_bAlarm)   Lcd_Chr(2, 1, 'A'); else Lcd_Chr(2, 1, '/');
+   if (ManualMode) Lcd_Chr(2, 2, 'M'); else Lcd_Chr(2, 2, '/');
+
+   Lcd_Out(2, 3, "S:");
+   Lcd_Chr(2, 4, (Tmp_ProgStartHour / 10) + '0');
+   Lcd_Chr(2, 5, (Tmp_ProgStartHour % 10) + '0');
+   Lcd_Out(2, 6, ":");
+   Lcd_Chr(2, 7, (Tmp_ProgStartMin / 10) + '0');
+   Lcd_Chr(2, 8, (Tmp_ProgStartMin % 10) + '0');
+   Lcd_Out(2, 10, " R");
+   LcdOutDuration(2, 12, WateringSec);
+}
+  \end{minted}
 
 \newpage
 \section{Postupak verifikacije i vrednovanja koda }
