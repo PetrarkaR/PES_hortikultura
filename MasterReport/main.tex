@@ -55,10 +55,11 @@
 \tableofcontents
 \newpage
 
-\section{Opis zadatkta}
+\section{Opis zadatka}
 Projektovati sistem za automatizovano zalivanje biljaka u baštama.
 Sistem sadrži sledeće funkcionalne celine: uređaje za zalivanje sa pumpom (do 16 Slejv uređaja) koji se instaliraju u baštama; jedan Master automat i centralni računarski sistem. 
-Slejv uređaji su preko RS-232 povezani sa Master automatom koji prikuplja informacije sa Slejv uređaja. 
+Slejv uređaji su u normalnom radu preko RS-485 magistrale povezani sa Master automatom koji prikuplja informacije sa Slejv uređaja.
+RS-232 veza koristi se kao jednostavnija razvojna i testna veza kada je povezan samo jedan Slejv uređaj na malom rastojanju.
 Master automat je dalje povezan preko ETHERNET veze sa centralnim računarom.
 
 Uređaj za zalivanje sa pumpom omogućava zalivanje biljaka po unapred definisanom programu rada. 
@@ -113,11 +114,11 @@ Centralni računar treba da omogući:
 
   \textbf{CRS} je sistem koji služi za upravljanje Master automatom i samim tim i Slejv automatima.
   Povezan je sa Masterom automatom putem Ethernet veze, statičkom IP adresom, na njihovoj lokalnoj mreži. 
-  Pristup Master automatu vrši se putem HTTP protokola, kucanjem statičke adrese direknto u browser. \newline
+  Pristup Master automatu vrši se putem HTTP protokola, kucanjem statičke adrese direktno u browser. \newline
 
  \textbf{Master automat} upravlja Slejv automatima, kojih ima maksimalno 16.
  Vrši se prozivka svakog Slejva na 125ms, pri kojoj se prikupljaju osnovni podaci o statusu svakog Slejva po protokolu koji će kasnije biti opisan.
- Automati su u slučaju krakte udaljenosti međusobno povezani putem RS-232 protokola, dok je u suprotnom korišćen RS-232 protokol.\newline
+ Automati su u slučaju kratke udaljenosti i rada sa jednim Slejvom povezani putem RS-232 veze, dok se za normalan rad sa više Slejv automata koristi RS-485 magistrala.\newline
 
  \textbf{Slejv automat} se nalazi kod pumpe svake bašte u sistemu, i upravlja protokom i vremenom operacije pumpe po prethodno definisanom programu koji mu je Master automat dodelio.
  Takođe ima funkciju alarma u slučaju prevelikog ili premalog protoka vode kroz sistem za zalivanje. \newline
@@ -127,15 +128,16 @@ Centralni računar treba da omogući:
  \caption{Dijagram arhitekture sistema}
 \end{figure}
 
-  CRS ima jednosmernu komunikaciju ka Masteru, dok Master i Slejv atuomati realizuju obostranu.
+  CRS i Master komuniciraju po HTTP request-response modelu, dok Master i Slejv automati realizuju obostranu komunikaciju preko serijske veze.
 \newpage 
 \section{Realizacija komunikacionog protokola}
 
   \subsection{Komunikacija između Master i Slejv automata}
 
-Komunikacija između Master i Slejv automata realizovana je preko UART modula mikrokontrolera i RS-232 drajvera. 
-  RS485 je izabran zato što omogućava rad više uređaja na istoj magistrali i pouzdan diferencijalni prenos na većim rastojanjima. 
-  U realizovanom sistemu komunikacija radi na bitskoj brzini od 19200 bps, a smer rada RS485 drajvera određuje signal \texttt{DR}. 
+Komunikacija između Master i Slejv automata realizovana je preko UART modula mikrokontrolera i RS-485 drajvera u normalnom radu.
+  RS-485 je izabran zato što omogućava rad više uređaja na istoj magistrali i pouzdan diferencijalni prenos na većim rastojanjima.
+  RS-232 veza ostaje pogodna za razvoj i testiranje sa jednim uređajem na kratkom rastojanju.
+  U realizovanom sistemu komunikacija radi na bitskoj brzini od 19200 bps, a smer rada RS-485 drajvera određuje signal \texttt{DR}.
   Kada automat šalje podatke, \texttt{DR} se postavlja na logičku jedinicu, a nakon slanja se vraća na nulu da bi automat ponovo slušao magistralu.
 
   Master periodično proziva Slejv automate. 
@@ -197,7 +199,7 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
 
   \subsection{Komunikacija između Master automata i Centralnog Računarskog sistema}
     Komunikacija se odvija putem Ethernet porta, kroz web browser na Centralnom Računarskom Sistemu. 
-    Master automat podešen je da ima statičku IPv4 adresu 10.99.21.1, koja je na mrežim Centralnog Računarskog Sistema.
+    Master automat podešen je da ima statičku IPv4 adresu 10.99.12.1, koja je na mreži Centralnog Računarskog Sistema.
     Da bi se komuniciralo sa Slejv automatom putem CRS-a, potrebno je dokucati komandu nakon IP adrese.
     Neke od sledećih komandi su :
     \begin{figure}[ht]
@@ -236,16 +238,16 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
 \clearpage
 \section{Hardverska Realizacija automata}
   \subsection{Šema Master automata}
-  Električna šema Master automata sastoji se od 2x16 LCD-a, RS-232, RS485 i Ethernet interfejs, pinova i bloka za programiranje mikrokontrolera, mikrokontroler PIC18F2525, bloka za napajanje, četiri tastera povezana na \texttt{PORTB}, svaki sa svojim prekidom, i dve LED diode, od koje se jedna koristi kao znak za prolazak kroz polling svake bašte.
+  Električna šema Master automata sastoji se od 2x16 LCD-a, RS-232, RS-485 i Ethernet interfejsa, pinova i bloka za programiranje mikrokontrolera, mikrokontrolera PIC18LF2525-I/SP, bloka za napajanje, četiri tastera povezana na \texttt{PORTB}, svaki sa svojim prekidom, i dve LED diode, od koje se jedna koristi kao znak za prolazak kroz polling svake bašte.
   Zbog razlike napona komunikacije između Ethernet interfejsa i mikrokontrolera, koristimo level shiftere i buffere (dva redno povezana invertora).
   
-  Za naš sistem izabran je PIC18F2525 u svom originalnom DIP28 kućištu.
-  Sa svojih 25Mhz i naponu napajanja od 5V i više je nego dovoljan za zahteve projekta.
+  Za naš sistem izabran je PIC18LF2525-I/SP u DIP28 kućištu.
+  Sa svojih 25 MHz i naponom napajanja od 5 V i više je nego dovoljan za zahteve projekta.
   Ima 48kB ROM memorije, i malo manje od 4kB SRAM memorije, od kojih je u konačnom realizovanom projektu iskorišćeno nešto više od 1kB.
   Sadrži podršku za RS-232 putem internog oscilatora, Auto-Wake up on start bit, Auto-Baud detect i deseto bitni trinaestokanalni AD konvertor koji sadrži auto akviziciju i konverziju tokom sleep moda procesora.
-  Da bi smo programirali ovaj mikrokontroler koristimo Pic Kit 3 programator.
+  Da bismo programirali ovaj mikrokontroler koristimo PICkit 3 programator.
   
-  Na ploči nalazimo i ENC28J60, Ethernet drajver predstavljen u SOIC-28 pakovanju, koji funkcioniše na 25Mhz na naponu od 3.3V.
+  Na ploči nalazimo i ENC28J60, Ethernet drajver predstavljen u SOIC-28 pakovanju, koji funkcioniše na 25 MHz na naponu od 3.3 V.
 
   \begin{figure}[ht]   
       \hspace{-1.8cm}\includegraphics[width=1.2\textwidth]{MasterSema.pdf}
@@ -256,7 +258,7 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
       \hline
       Port & Smer & Opis \\
       \hline
-      PORTA.F5 & Izlaz & DR - Write/read kontrola RS485 drajvera SN65176, Postavlja se na 1 pri upisu. \\
+      PORTA.F5 & Izlaz & DR - Write/read kontrola RS-485 drajvera SN65176, postavlja se na 1 pri upisu. \\
       \hline
       PORTB.F4-F7 & Izlaz & Deo magistrale za prenos podataka između LCD-a i PIC-a \\
       \hline
@@ -316,13 +318,13 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
 \clearpage
 
 \subsection{Šema Slejv automata}
-  Električna šema Slejv automata sastoji se od razvojne ploče sa mikrokontrolerom PIC16F877A, RS-232/RS485 komunikacionog interfejsa, 16x2 LCD displeja, tastera za manuelno zalivanje, tastera za resetovanje lokalnog stanja, analognog ulaza za senzor protoka i indikacionih izlaza za stanje sistema, rad pumpe i alarm.
+  Električna šema Slejv automata sastoji se od razvojne ploče sa mikrokontrolerom PIC16F874A u korišćenoj šemi, RS-232/RS-485 komunikacionog interfejsa, 16x2 LCD displeja, tastera za manuelno zalivanje, tastera za resetovanje lokalnog stanja, analognog ulaza za senzor protoka i indikacionih izlaza za stanje sistema, rad pumpe i alarm.
   Slejv automat je postavljen kod pumpe za zalivanje i zadužen je za lokalno upravljanje pumpom, očitavanje senzora protoka, prikaz stanja na displeju i komunikaciju sa Master automatom.
 
-  Za Slejv automat izabran je PIC16F877A, jer obezbeđuje dovoljan broj digitalnih ulaza i izlaza, UART komunikaciju, Tajmer 1, A/D konvertor i paralelno povezivanje LCD displeja.
+  Za Slejv automat korišćen je PIC16F874A/PIC16F877A kompatibilan razvojni sistem, jer obezbeđuje dovoljan broj digitalnih ulaza i izlaza, UART komunikaciju, Tajmer 1, A/D konvertor i paralelno povezivanje LCD displeja.
   Mikrokontroler radi na taktu od 20 MHz i napajanju od 5 V.
-  Kao i kod Master automata, serijska komunikacija koristi UART modul, dok se izbor između RS-232 i RS485 veze vrši kratkospojnicima na razvojnoj ploči.
-  RS-232 je pogodan za razvoj i testiranje sa jednim uređajem na malom rastojanju, dok se u normalnom radu sistema koristi RS485, jer omogućava povezivanje većeg broja Slejv automata na zajedničku magistralu.
+  Kao i kod Master automata, serijska komunikacija koristi UART modul, dok se izbor između RS-232 i RS-485 veze vrši kratkospojnicima na razvojnoj ploči.
+  RS-232 je pogodan za razvoj i testiranje sa jednim uređajem na malom rastojanju, dok se u normalnom radu sistema koristi RS-485, jer omogućava povezivanje većeg broja Slejv automata na zajedničku magistralu.
 
   \begin{figure}[ht]
     \centering
@@ -348,7 +350,7 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
     \texttt{PORTA.F2} & izlaz & Indikacija da je sistem uključen \\ \hline
     \texttt{PORTA.F3} & izlaz & Indikacija rada pumpe, odnosno aktivnog zalivanja \\ \hline
     \texttt{PORTA.F4} & izlaz & Indikacija alarma protoka \\ \hline
-    \texttt{PORTC.F5} & izlaz & \texttt{DR} signal za izbor smera RS485 drajvera \\ \hline
+    \texttt{PORTC.F5} & izlaz & \texttt{DR} signal za izbor smera RS-485 drajvera \\ \hline
     \texttt{PORTC.F6} & izlaz & UART TX linija \\ \hline
     \texttt{PORTC.F7} & ulaz & UART RX linija \\ \hline
     \texttt{PORTD.F0-F3} & ulaz & Četvorobitni ID Slejv automata \\ \hline
@@ -402,7 +404,7 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
 
 \section{Realizacija firmvera Master automata}
   Firmver Master automata pisan je u C jeziku i kompajliran na mikroC PRO kompajleru za PIC seriju mikrokontrolera.
-  Kod za firmver se sastoji od funkcija za inicijalizaciju registara mikrokontrolera, inicijalizaciju globalnih promenljivih, funkcija za komunikaciju izmeđju automata i centralnog računarskog sistema, globalnog timer interrupta, funkcija za izpis na LCD i main funkcije.\newline
+  Kod za firmver se sastoji od funkcija za inicijalizaciju registara mikrokontrolera, inicijalizaciju globalnih promenljivih, funkcija za komunikaciju između automata i centralnog računarskog sistema, globalnog timer interrupta, funkcija za ispis na LCD i main funkcije.\newline
   U nastavku su date tabele makroa, pinova, varijabli, struktura i funkcija.
   \begin{figure}[ht]
     \caption{Tabela makroa i pinova}
@@ -410,11 +412,11 @@ Komunikacija između Master i Slejv automata realizovana je preko UART modula mi
       \hline
       Naziv makroa ili pina & Dodeljena vrednost & Opis \\
       \hline
-      SPI\_Ethernet\_HALFDUPLEX & 0 & Komunikacija sa CRS je u punom dupleksu\\
+      SPI\_Ethernet\_HALFDUPLEX & 0 & Komunikacija sa CRS je u poludupleks režimu\\
       \hline
       SPI\_Ethernet\_FULLDUPLEX & 1 & Komunikacija sa CRS je u punom dupleksu\\
       \hline
-      DR & PORTA.F5 & RS-232 kontrola R/W\\
+      DR & PORTA.F5 & RS-485 kontrola smera prenosa\\
       \hline
       ButtonInc & PORTB.F0 & Inkrement dugme za promenu prikaza\\
       \hline
@@ -433,7 +435,7 @@ Struktura Mode opisuje program koji zadajemo putem browsera, sadrži sve potrebn
     \hline
     startHour & unsigned char & Sat početka programa \\
     \hline 
-    startMinute & unsigned char & Minut početka programa \\
+    startMin & unsigned char & Minut početka programa \\
     \hline 
     durationsH & unsigned char & Gornje dve cifre trajanja programa \\
     \hline
@@ -470,11 +472,11 @@ Data je tabela svih globalnih promenljivih korišćenih u Master firmveru.
       \hline
       FlagRTC & unsigned char & 0x00 & Flag za slanje RTC podataka \\
       \hline
-      FlagPoll & unsigned char & 0x00 & Flag da su svi Slejv atuomati prozvani \\
+      FlagPoll & unsigned char & 0x00 & Flag da su svi Slejv automati prozvani \\
       \hline
       updateLCDFlag & unsigned char & 0x00 & Flag za osvežavanje LCD-a \\
       \hline
-      SLAVE\_ID & unsigned char & 0x00 & Jedinstveni identifikacioni broj svakog Slejv automata \\
+      SLAVE\_ID & unsigned char & 0x0F & Brojač trenutno prozivanog Slejv automata; početna vrednost 0x0F omogućava da prva inkrementacija započne od Slejva 0 \\
       \hline
        ByteID & unsigned char & 0x00 & Jedinstveni identifikacioni broj svakog dolazećeg bajta  \\
       \hline 
@@ -482,13 +484,13 @@ Data je tabela svih globalnih promenljivih korišćenih u Master firmveru.
       \hline
        Comm[ ] & unsigned char & 0x00 & Niz slejvova koji su se odazvali\\
       \hline
-       Status[ ] & unsigned char & 0x00 & Status bajt koji svaki Slejv šalje Masteru na prozivku \\
+       Status1[ ] & unsigned char & 0x00 & Status bajt koji svaki Slejv šalje Masteru na prozivku \\
       \hline
        no\_ch &  unsigned char  & 0x00 & Brojač karaktera u nizu, može da se koristi i za pozicioniranje na početak niza \\
        \hline
         brojac &  unsigned char  & 0x00 & Brojač za tajmer  5x25ms \\
        \hline
-        cntTas &  unsigned char  & 0x00 & Brojač za treperenje tastera \\
+        btnCnt &  unsigned char  & 0x00 & Brojač za debounce tastera \\
        \hline
         cntDisp &  unsigned char  & 0x00 & Brojač za prikaze na LCD-u \\
        \hline
@@ -502,7 +504,7 @@ Data je tabela svih globalnih promenljivih korišćenih u Master firmveru.
 Ispod imamo tabelu svih funkcija korišćene za realizaciju rada Master automata. Odmah nakon tabele slede i njihova objašnjenja.
 
 \begin{figure}[ht]
-  \caption{Tabela funckija}
+  \caption{Tabela funkcija}
 \begin{centering}
   \begin{tabular}{|p{5cm}|p{2cm}|p{8cm}|}
     \hline
@@ -514,7 +516,7 @@ Ispod imamo tabelu svih funkcija korišćene za realizaciju rada Master automata
     \hline 
      interrupt() & void & Obrada prekida i debounce tastera\\ 
      \hline
-     unsigned int SPI\_Ethernet\_UserTCP(unsigned char *remoteHost, unsigned int remotePort, unisgned int localPort, unsigned int reqLength, char *canCloseTCP) & u\_int & Obrađuju se zahtevi koji pristižu iz WEB pretraživača i izvršava se slanje podataka preko Etherneta \\
+     unsigned int SPI\_Ethernet\_UserTCP(unsigned char *remoteHost, unsigned int remotePort, unsigned int localPort, unsigned int reqLength, char *canCloseTCP) & u\_int & Obrađuju se zahtevi koji pristižu iz WEB pretraživača i izvršava se slanje podataka preko Etherneta \\
      \hline
      formBuffer() & void & Formira Niz podataka koji dobije od Slejva \\ 
      \hline
@@ -526,7 +528,7 @@ Ispod imamo tabelu svih funkcija korišćene za realizaciju rada Master automata
      \hline
      lcdDisplayProgram(struct Mode Program, unsigned char ID) & void & Formatiranje prikaza programa \\
      \hline
-     lcdDisplayUchar(unsigned char row, unsigned char col, unsigned char value) & void & Formaitranje prikaza unsigned chara \\
+     lcdDisplayUchar(unsigned char row, unsigned char col, unsigned char value) & void & Formatiranje prikaza unsigned chara \\
      \hline 
      lcdDisplayBit(unsigned char mask) & void & Formatiranje prikaza bitova na ekranu \\
      \hline
@@ -622,11 +624,12 @@ void init() {
 \textbf{Funkcije appendBuffer i formBuffer} služe za formiranje nizova koji sadrže odgovore Slejv automata koji će kasnije biti prikazani na CRS, na zahtev klijenta.
 \begin{minted}{C}
 void appendBuffer(char *p_ch) {
-  while ((*p_ch) != 0x00) {
+  while (((*p_ch) != 0x00) && (no_ch < 249)) {
     buffer[no_ch] = *p_ch;
     no_ch++;
     p_ch++;
   }
+  buffer[no_ch] = 0x00;
 }
 void formBuffer() {
   unsigned char i = 0;
@@ -660,11 +663,10 @@ void formBuffer() {
       } else {
         appendBuffer("IDLE\n\n");
       }
-      appendBuffer("<br>")
+      appendBuffer("<br>");
     }
   }
   buffer[no_ch] = 0x00;
-  no_ch++; // kraj stringa
 }
 \end{minted}
 \textbf{Funkcija transmit} ima ulogu slanja bajta putem UART veze, poziva se u main funkciji kako bi se ostvarila komunikacija sa Slejv automatom.
@@ -699,7 +701,7 @@ void interrupt() {
     {
       btnCnt = 20; // 20*25=500ms
       updateLCDFlag = 1;
-      if (cntDisp >= 20) {
+      if (cntDisp >= 19) {
         cntDisp = 0;
       } else {
         cntDisp++;
@@ -711,7 +713,7 @@ void interrupt() {
       btnCnt = 20; // 20*25=500ms
       updateLCDFlag = 1;
       if (cntDisp == 0) {
-        cntDisp = 20;
+        cntDisp = 19;
       } else {
         cntDisp--;
       }
@@ -723,7 +725,7 @@ void interrupt() {
 
   if ((PIE1.RCIE) && (PIR1.RCIF)) { // UART RECIEVE FROM SLAVE
     unsigned char ch;
-    PIR1.RCIF = 0; // Recieve flag na 0
+    PIR1.RCIF = 0; // Receive flag na 0
     ch = RCREG;    // prima se bajt preko UART-a
 
     switch (ByteID) {
@@ -814,25 +816,25 @@ Prvih šestnaest prikazuju program, njegov broj i njegove podatke.
 Dok ostali prikazuju statusne bitove Slejv automata u vidu bitskog vektora.
 \begin{minted}{C}
 void updateLCD() {
-  if (cntDisp <= 16) {
+  if (cntDisp < 16) {
     lcdDisplayProgram(Program[cntDisp], cntDisp);
-  } else if (cntDisp == 17) { // System
+  } else if (cntDisp == 16) { // System
     Lcd_Out(1, 1, "Operation       ");
     lcdDisplayBit(STATUS_SYSTEM_BIT);
-  } else if (cntDisp == 18) { // Watering
+  } else if (cntDisp == 17) { // Watering
     Lcd_Out(1, 1, "Watering        ");
     lcdDisplayBit(STATUS_WATER_BIT);
-  } else if (cntDisp == 19) { // Alarm
+  } else if (cntDisp == 18) { // Alarm
     Lcd_Out(1, 1, "Alarm           ");
     lcdDisplayBit(STATUS_ALARM_BIT);
-  } else if (cntDisp == 20) { // Manual
+  } else if (cntDisp == 19) { // Manual
     Lcd_Out(1, 1, "Manual          ");
     lcdDisplayBit(STATUS_MANUAL_BIT);
   }
 }
 \end{minted}
 \textbf{Funkcija main} \newline
-Glavna funkcija u kojoj se najpre pozivaju funkcije za inicijalizaciju, nakon kojih sledi glavna beskonačna petlja iz koje se izlazi isključivo po prekidu tajmera, tjst. na svakih 25ms. 
+Glavna funkcija u kojoj se najpre pozivaju funkcije za inicijalizaciju, nakon kojih sledi glavna beskonačna petlja iz koje se izlazi isključivo po prekidu tajmera, to jest na svakih 25 ms.
 U beskonačnoj petlji vršimo prozivku svih Slejv automata na svakih 125ms, od kojih kada se prozovu svi, prođe dve sekunde. Prolazak kroz sve bašte označava Flag1.
 Najpre se šalje broadcast RTC signal (ako je FlagRTC postavljen sa CRS-a), svim Slejv automatima u isto vreme, kako bi se izbeglo kašnjenje i zadržala tačnost sata realnog vremena.
 Nakon slanja podešavanja RTC-a, vreme je da se Slejv automati isprogramiraju. Bira se bašta putem browsera kojoj se, kada ona dođe na red, šalju svi potrebni podaci o programu.
@@ -869,7 +871,7 @@ void main(void) {
         // saljemo RTC signal svim bastama, da bi smo izbegli kasnjenja
         DR = 1;
         transmit(RTC_BROADCAST); // 0x1F
-        // transmit(RTC_CODE|SLAVE_ID);
+        // RTC se šalje broadcast porukom svim baštama.
         transmit(hours);
         transmit(minutes);
         transmit(seconds);
@@ -899,7 +901,7 @@ void main(void) {
 \clearpage
 
 \section{Realizacija firmvera Slejv automata}
-  Firmver Slejv automata napisan je za mikroC kompajler i kontroler PIC16F877A. 
+  Firmver Slejv automata napisan je za mikroC kompajler i korišćeni PIC16F874A/PIC16F877A kompatibilni kontroler.
   Osnovna uloga firmvera je da lokalno upravlja procesom zalivanja i da Master automatu u svakom trenutku može da vrati ažuran status sistema. 
   Kod za firmver se sastoji od funkcija za inicijalizaciju registara mikrokontrolera, inicijalizaciju globalnih promenljivih, obrade prekida, obrade tastera, komunikacije sa Master automatom, formiranja statusnog bajta, ispisa na LCD i glavne funkcije.
   U nastavku su date tabele makroa, pinova, promenljivih i funkcija, a zatim i objašnjenja najvažnijih funkcionalnih celina.
@@ -919,7 +921,7 @@ void main(void) {
     \texttt{PinSystemOn} & \texttt{PORTA.F2} & Izlazna indikacija da je sistem uključen \\ \hline
     \texttt{PinWatering} & \texttt{PORTA.F3} & Izlazna indikacija rada pumpe \\ \hline
     \texttt{PinAlarm} & \texttt{PORTA.F4} & Izlazna indikacija alarma protoka \\ \hline
-    \texttt{DR} & \texttt{PORTC.F5} & Upravljanje smerom RS485 drajvera \\ \hline
+    \texttt{DR} & \texttt{PORTC.F5} & Upravljanje smerom RS-485 drajvera \\ \hline
     \texttt{DEBOUNCE\_TICKS} & \texttt{10} & Broj tajmerskih intervala za zaštitu od treperenja tastera \\ \hline
   \end{tabular}
   \caption{Tabela makroa i pinova Slejv firmvera}
@@ -1025,7 +1027,7 @@ void init_variables()
 
   \textbf{Funkcija init} podešava hardver Slejv automata.
   Port A se delimično koristi za analogni ulaz senzora protoka, a delimično za izlazne indikacije.
-  Port B je podešen kao ulaz za tastere, port C sadrži UART linije, LCD kontrolne linije i \texttt{DR} signal RS485 drajvera, dok se port D koristi i za ID uređaja i za podatke LCD displeja.
+  Port B je podešen kao ulaz za tastere, port C sadrži UART linije, LCD kontrolne linije i \texttt{DR} signal RS-485 drajvera, dok se port D koristi i za ID uređaja i za podatke LCD displeja.
 
   A/D konvertor je uključen preko registara \texttt{ADCON0} i \texttt{ADCON1}. 
   Rezultat konverzije se koristi kao osmobitna vrednost protoka, tako što se čita registar \texttt{ADRESH}. 
@@ -1185,13 +1187,14 @@ void interrupt()
 
   Automatsko zalivanje se pokreće kada su ispunjeni sledeći uslovi:
   \[
-  \begin{aligned}
-    \texttt{m\_bWatering} &= 0,\\
-    \texttt{Seconds} &= 0,\\
-    \texttt{Hours} &= \texttt{ProgStartHour},\\
-    \texttt{Minutes} &= \texttt{ProgStartMin}.
-  \end{aligned}
+  \begin{gathered}
+    \texttt{m\_bWatering == 0}\\
+    \texttt{Seconds == 0}\\
+    \texttt{Hours == ProgStartHour}\\
+    \texttt{Minutes == ProgStartMin}
+  \end{gathered}
   \]
+  Kako se start proverava samo kada su sekunde jednake nuli, isti dnevni program se pokreće jednom u zadatom minutu.
   Tada se preostalo vreme zalivanja postavlja na trajanje primljeno od Master automata, aktivira se izlaz pumpe i postavlja se status da je zalivanje u toku. 
   Svake sekunde se \texttt{WateringSec} smanjuje za jedan. 
   Kada dostigne nulu, izlaz pumpe se gasi i Slejv prelazi u stanje čekanja sledećeg programa ili manuelne komande.
@@ -1258,7 +1261,7 @@ else
 
   \textbf{Funkcija UpdateLCD} osvežava oba reda displeja.
   Prvi red prikazuje tekuće vreme i trenutnu vrednost protoka.
-  Drugi red prikazuje alarm, manuelni režim, vreme početka programa i preostalo vreme do gašenja pumpe.
+  Drugi red prikazuje alarm, manuelni režim, aktivno vreme početka programa i preostalo vreme do gašenja pumpe.
   Preostalo vreme se prikazuje u formatu minuta i sekundi pomoću funkcije \texttt{LcdOutDuration()}.
   \begin{minted}{C}
 void UpdateLCD()
@@ -1279,11 +1282,11 @@ void UpdateLCD()
    if (ManualMode) Lcd_Chr(2, 2, 'M'); else Lcd_Chr(2, 2, '/');
 
    Lcd_Out(2, 3, "S:");
-   Lcd_Chr(2, 4, (Tmp_ProgStartHour / 10) + '0');
-   Lcd_Chr(2, 5, (Tmp_ProgStartHour % 10) + '0');
+   Lcd_Chr(2, 4, ((ProgStartHour >> 4) & 0x0F) + '0');
+   Lcd_Chr(2, 5, (ProgStartHour & 0x0F) + '0');
    Lcd_Out(2, 6, ":");
-   Lcd_Chr(2, 7, (Tmp_ProgStartMin / 10) + '0');
-   Lcd_Chr(2, 8, (Tmp_ProgStartMin % 10) + '0');
+   Lcd_Chr(2, 7, ((ProgStartMin >> 4) & 0x0F) + '0');
+   Lcd_Chr(2, 8, (ProgStartMin & 0x0F) + '0');
    Lcd_Out(2, 10, " R");
    LcdOutDuration(2, 12, WateringSec);
 }
@@ -1292,7 +1295,8 @@ void UpdateLCD()
 \newpage
 \section{Postupak verifikacije i vrednovanja koda }
  \subsection{Rezultat rada sistema}
-  Verifikacija sistema vrši se povezivanjem Master i Slejv razvojne ploče preko RS-232 veze i učitavanjem odgovarajućih firmvera u mikrokontrolere. 
+  Verifikacija sistema vrši se povezivanjem Master i Slejv razvojne ploče preko serijske veze i učitavanjem odgovarajućih firmvera u mikrokontrolere.
+  U normalnom radu predviđena je RS-485 magistrala, dok je RS-232 korišćen kao razvojna i testna veza pri radu sa jednim Slejv automatom.
   ID Slejv automata podešava se prekidačima na donja četiri bita porta D. 
   Nakon uključivanja napajanja proverava se da li se na LCD displeju prikazuje trenutno vreme, vrednost protoka, status alarma i preostalo vreme zalivanja.
 
@@ -1322,23 +1326,25 @@ void UpdateLCD()
 
   Status sistema dostupan je Master automatu kroz periodični odgovor Slejva. 
   Statusni bajt sadrži informacije o uključenosti sistema, aktivnom zalivanju, alarmu i manuelnom režimu, što odgovara zahtevima za periodično očitavanje stanja bašte. 
+  Master proziva sledeći Slejv na svakih 125 ms, pa se u konfiguraciji sa svih 16 Slejv automata status pojedinačne bašte osvežava približno na svake 2 s.
   Lokalni LCD prikazuje trenutno vreme, vrednost protoka, vreme početka programa i preostalo vreme zalivanja, pa korisnik na samom uređaju može da proveri trenutno stanje.
 
   Nadzor protoka je realizovan preko A/D konvertora i poređenja sa minimalnom i maksimalnom dozvoljenom vrednošću. 
   Time je ispunjen zahtev za signalizaciju neispravnog protoka tokom rada pumpe. 
-  U trenutnoj verziji firmvera granice protoka su definisane u programu kao početne vrednosti, dok se daljinsko podešavanje granica može dodati proširenjem protokola na isti način kao što je realizovano podešavanje programa zalivanja.
+  Očitavanje se u firmveru svodi na osmobitnu vrednost čitanjem registra \texttt{ADRESH}, iako A/D konvertor hardverski ima veću rezoluciju.
+  U trenutnoj verziji firmvera granice protoka su definisane u programu kao početne vrednosti \texttt{FlowMin = 20} i \texttt{FlowMax = 60}, dok se daljinsko podešavanje granica može dodati proširenjem protokola na isti način kao što je realizovano podešavanje programa zalivanja.
 
   Realizovani Master automat ispunjava zahteve glavnog kontrolera komunikacije na magistralama Master-Slejv i Master-CRS. 
   CRS komunicira sa Master automatom putem internet browsera koristeći HTTP protokol i GET zahtev, upisivanjem komande direktno u search bar.
   Master automat čuva podatke o svakom zasebnom programu i svakoj bašti ponaosob. 
-  Može da programira Slejv automate UART protokolom, preko RS-232 porta za kratke distance, da preko istog protokola prihvata podatke, čuva ih i direktno prikazuje u internet pretraživač u vidu stringa.
+  Može da programira Slejv automate UART protokolom, preko RS-485 magistrale u normalnom radu ili RS-232 porta za kratke distance, da preko istog protokola prihvata podatke, čuva ih i direktno prikazuje u internet pretraživač u vidu stringa.
   Na svom lokalnom LCD-u prikazuje mogućih 16 programa zalivanja zajedno sa njihovim parametrima, kako i njihove statusne poruke.
 
 \section{Detaljno uputstvo za upotrebu}
 
   Pre korišćenja Slejv automata potrebno je podesiti njegov ID broj pomoću prekidača povezanih na \texttt{PORTD.F0-F3}. 
   Svaki Slejv u sistemu mora da ima različit ID u opsegu od 0 do 15. 
-  Nakon toga se Slejv povezuje sa Master automatom preko RS-232 konektora i uključuje se napajanje razvojne ploče.
+  Nakon toga se Slejv povezuje sa Master automatom preko RS-485 magistrale, odnosno preko RS-232 konektora kada se ispituje jedan uređaj na kratkom rastojanju, i uključuje se napajanje razvojne ploče.
 
   Po uključenju, na LCD displeju Slejva treba da se prikažu trenutno vreme, vrednost protoka i status programa. 
   Ako je potrebno sinhronizovati vreme, sa CRS-a se preko Master automata šalje komanda za podešavanje sata. 
@@ -1368,14 +1374,13 @@ void UpdateLCD()
 // Protokol Master -> Slave:==============================
 /*
  * ========================================================
- *RTC promenljive 011|x|idid| -> 0x60 + 3 Bytes HH|MM||SS
- *Biranje moda 101|x|idid| -> 0xA0 + 5 Bytes /pXX|HH|MM|SS|SS
+ *RTC broadcast -> 0x7F + 3 Bytes HH|MM|SS
+ *Biranje moda 101|x|idid| -> 0xA0 + 4 Bytes HH|MM|SS|SS
  * ========================================================
  */
-#define RTC_CODE 0x60
 #define RTC_BYTES 3 // DONE
 #define MODE_CODE 0xA0
-#define MODE_BYTES 5
+#define MODE_BYTES 4
 #define RTC_BROADCAST 0x7F
 // Slave -> Master status response byte.
 #define STATUS_CODE 0x20
@@ -1402,7 +1407,7 @@ void UpdateLCD()
 #define MAC_ADDR {0x00, 0x14, 0xA5, 0x76, 0x19, 0x3f}
 #define IP_ADDR {10, 99, 12, 1}
 #define HTTP_PORT 80
-// OBB MasterRecieve
+// OBB MasterReceive
 #define BYTE_ID_IDLE 0x00
 #define BYTE_ID_CMD_BYTE 0x02
 #define BYTE_ID_STATUS_BYTE 0x01
